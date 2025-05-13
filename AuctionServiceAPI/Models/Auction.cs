@@ -10,7 +10,7 @@ public class Auction
     public List<Bid> BidHistory { get; set; } = new();
 
     // Det nuværende højeste bud
-    public Bid? CurrentBid { get; set; }
+    public Bid? MinimumBid { get; set; }
 
     // Det tilknyttede auktionsobjekt
     public AuctionEffect Effect { get; set; } = null!;
