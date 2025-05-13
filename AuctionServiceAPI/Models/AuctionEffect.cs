@@ -15,8 +15,8 @@ namespace Auction
 }
 public enum AuctionStatus
 {
-    Upcoming,
-    Active,
-    Closed,
-    Cancelled
+    Upcoming, // Vi skal bruge denne når vi opretter en auktion
+    Active, // Auktionen er aktiv og kan bydes på
+    Closed, // Auktionen er lukket og kan ikke bydes på
+    Cancelled // Auktionen er annulleret fordi vi ikke æslkger produktet
 }
