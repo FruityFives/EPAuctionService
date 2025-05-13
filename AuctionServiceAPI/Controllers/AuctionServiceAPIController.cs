@@ -8,9 +8,9 @@ namespace AuctionServiceAPI.Controllers;
 public class AuctionServiceAPIController : ControllerBase
 {
    
-    private readonly ILogger<WeatherForecastController> _logger;
+    private readonly ILogger<AuctionServiceAPIController> _logger;
 // herhenne
-    public AuctionServiceAPIController(ILogger<WeatherForecastController> logger)
+    public AuctionServiceAPIController(ILogger<AuctionServiceAPIController> logger)
     {
         _logger = logger;
     }
