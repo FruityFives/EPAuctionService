@@ -6,11 +6,13 @@ public class Auction
     public Guid Id { get; set; }
     public AuctionStatus Status { get; set; }
 
+    public Catalog CatalogId { get; set; } = null!; // FK til kataloget
+
     // Historik over bud
-    public List<Bid> BidHistory { get; set; } = new();
+    public List<BidDTO> BidHistory { get; set; } = new();
 
     // Det nuværende højeste bud
-    public Bid? CurrentBid { get; set; }
+    public BidDTO? CurrentBid { get; set; }
 
     // Det tilknyttede auktionsobjekt
     public AuctionEffect Effect { get; set; } = null!;
