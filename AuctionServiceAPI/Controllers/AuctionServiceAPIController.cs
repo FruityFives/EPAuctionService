@@ -9,7 +9,7 @@ public class AuctionServiceAPIController : ControllerBase
 {
    
     private readonly ILogger<WeatherForecastController> _logger;
-
+// herhenne
     public AuctionServiceAPIController(ILogger<WeatherForecastController> logger)
     {
         _logger = logger;
