@@ -1,6 +1,6 @@
 namespace AuctionServiceAPI.Models;
 
-public class Bid
+public class BidDTO
 {
     public Guid Id { get; set; }
 
