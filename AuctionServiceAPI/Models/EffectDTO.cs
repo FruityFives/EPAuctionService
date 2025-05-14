@@ -1,22 +1,15 @@
 using System;
 
-namespace Auction
-{
+namespace Models;
     public class EffectDTO
     {
-        public Guid Id { get; set; }
+        public Guid EffectId { get; set; }
         public string Title { get; set; } = string.Empty;
         public decimal AssessmentPrice { get; set; }
         public string ConditionReport { get; set; } = string.Empty;
         public string Picture { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
-        public AuctionStatus Status { get; set; }
+        public EffectDTO Status { get; set; } // Denne kommer fra storage service. Når vi produktet er solgt sender vi en besked til storage swervice, som fortæller den at den skal ændre status
     }
-}
-public enum AuctionStatus
-{
-    Upcoming, // Vi skal bruge denne når vi opretter en auktion
-    Active, // Auktionen er aktiv og kan bydes på
-    Closed, // Auktionen er lukket og kan ikke bydes på
-    Cancelled // Auktionen er annulleret fordi vi ikke æslkger produktet
-}
+
+
