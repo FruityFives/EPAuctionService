@@ -26,7 +26,7 @@ namespace AuctionServiceAPI.Test
 
         // Test for creating a catalog and verifying the returned object
         [Test]
-        public async Task CreateCatalog_ShouldReturnCatalog()
+        public async Task T1CreateCatalog_ShouldReturnCatalog()
         {
             // Arrange: create a sample Catalog object
             var inputCatalog = new Catalog
@@ -53,7 +53,7 @@ namespace AuctionServiceAPI.Test
 
         // Test for deleting a catalog when it exists
         [Test]
-        public async Task DeleteCatalog_ShouldReturnTrue_WhenFound()
+        public async Task T2DeleteCatalog_ShouldReturnTrue_WhenFound()
         {
             // Arrange: setup the mock to return true for a specific catalogId
             var catalogId = Guid.NewGuid();
@@ -63,13 +63,13 @@ namespace AuctionServiceAPI.Test
             var result = await _mockRepo.Object.DeleteCatalog(catalogId);
 
             // Assert: verify the result and that the method was called once
-            Assert.IsTrue(result);
             _mockRepo.Verify(repo => repo.DeleteCatalog(catalogId), Times.Once);
+            Assert.IsTrue(result);
         }
 
         // Test for deleting a catalog when it does not exist
         [Test]
-        public async Task DeleteCatalog_ShouldReturnFalse_WhenNotFound()
+        public async Task T3DeleteCatalog_ShouldReturnFalse_WhenNotFound()
         {
             // Arrange: setup the mock to return false for a specific catalogId
             var catalogId = Guid.NewGuid();
