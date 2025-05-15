@@ -7,7 +7,7 @@ public class AuctionRepository : IAuctionRepository
 {
     private readonly List<Auction> ListOfAuctions = new();
     List<Catalog> TestList = new CatalogRepository().SeedData();
-    
+
     public Task<Auction> AddAuction(Auction auction)
     {
         ListOfAuctions.Add(auction);
@@ -23,7 +23,7 @@ public class AuctionRepository : IAuctionRepository
             Status = AuctionStatus.Active,
             CatalogId = TestList[0].CatalogId,
             BidHistory = new List<BidDTO>(),
-            MinPrice = 5000, 
+            MinPrice = 5000,
             EffectId = new EffectDTO
             {
                 EffectId = Guid.NewGuid()
@@ -56,7 +56,7 @@ public class AuctionRepository : IAuctionRepository
         return Task.FromResult(true);
     }
 
-    public Task<Auction> UpdateAuctionStatus(Guid id, AuctionStatus status)
+    public Task<Auction?> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
         if (auction != null)
@@ -64,7 +64,7 @@ public class AuctionRepository : IAuctionRepository
             auction.Status = status;
             return Task.FromResult(auction);
         }
-        return Task.FromResult<Auction>(null);
+        return Task.FromResult<Auction?>(null);
     }
 
     public Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
@@ -81,7 +81,7 @@ public class AuctionRepository : IAuctionRepository
         return Task.FromResult(auction);
     }
 
-    public Task<Auction> AddBidToAuctionById(Guid auctionId, BidDTO bid)
+    public Task<Auction?> AddBidToAuctionById(Guid auctionId, BidDTO bid)
     {
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == auctionId);
         if (auction != null)
@@ -90,12 +90,7 @@ public class AuctionRepository : IAuctionRepository
             auction.CurrentBid = bid;
             return Task.FromResult(auction);
         }
-        return Task.FromResult<Auction>(null);
+        return Task.FromResult<Auction?>(null);
     }
-    
-    public Task<List<Auction>> SendAuctionBasedOnStatus( AuctionStatus status)
-    {
-        var auctions = ListOfAuctions.Where(a => a.Status == status).ToList();
-        return Task.FromResult(auctions);
-    }
+
 }

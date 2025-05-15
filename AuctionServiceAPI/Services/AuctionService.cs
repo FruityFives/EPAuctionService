@@ -11,29 +11,31 @@ public class AuctionService : IAuctionService
     {
         _auctionRepository = auctionRepository;
     }
-    
+
     public async Task<Auction> CreateAuction(Auction auction)
     {
         return await _auctionRepository.AddAuction(auction);
     }
 
-    public Task<bool> DeleteAuction(Guid id)
+    public async Task<bool> DeleteAuction(Guid id)
     {
-        throw new NotImplementedException();
+        return await _auctionRepository.RemoveAuction(id);
     }
 
-    public Task<Auction> UpdateAuctionStatus(Guid id)
+    public async Task<Auction> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
-        throw new NotImplementedException();
+        return await _auctionRepository.UpdateAuctionStatus(id, status);
     }
 
-    public Task<Auction> CreateBidToAuctionById(Guid auctionId, BidDTO bid)
+    public async Task<Auction> CreateBidToAuctionById(Guid auctionId, BidDTO bid)
     {
-        throw new NotImplementedException();
+        return await _auctionRepository.AddBidToAuctionById(auctionId, bid);
     }
 
-    public Task<List<Auction>> SendAuctionBasedOnStatus(AuctionStatus status)
+    public async Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
     {
-        throw new NotImplementedException();
+        return await _auctionRepository.SendActiveAuctions(catalogId, status);
     }
+
+
 }

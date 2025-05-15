@@ -18,14 +18,15 @@ namespace AuctionServiceAPI.Test
         // Mock object for the IAuctionRepository interface
         private Mock<IAuctionRepository> _mockRepo; // Til test cases 1-3
         private AuctionRepository _AuctionRepo;  // Til test case 4 ++
-        
+
         // Setup method runs before each test
         [SetUp]
         public void Setup()
         {
             _mockRepo = new Mock<IAuctionRepository>();
-            _AuctionRepo = new AuctionRepository();        }
-        
+            _AuctionRepo = new AuctionRepository();
+        }
+
         // Test for getting a catalog by ID
         [Test]
         public async Task T4AddAuction_To_SeedData()
@@ -39,7 +40,7 @@ namespace AuctionServiceAPI.Test
                 Status = AuctionStatus.Active,
                 CatalogId = AuctionList[0].CatalogId,
                 BidHistory = new List<BidDTO>(),
-                MinPrice = 5000, 
+                MinPrice = 5000,
                 EffectId = new EffectDTO
                 {
                     EffectId = Guid.NewGuid()
@@ -50,9 +51,9 @@ namespace AuctionServiceAPI.Test
             //Assert
             Assert.AreEqual(3, AuctionList.Count);
             Console.WriteLine(AuctionList.Count);
-      
+
         }
-        
+
         [Test]
         public async Task T5UpdateAuction_SeedData()
         {
@@ -65,24 +66,24 @@ namespace AuctionServiceAPI.Test
                 Status = AuctionStatus.Active,
                 CatalogId = AuctionList[0].CatalogId,
                 BidHistory = new List<BidDTO>(),
-                MinPrice = 5000, 
+                MinPrice = 5000,
                 EffectId = new EffectDTO
                 {
                     EffectId = Guid.NewGuid()
                 }
             };
-            
+
             AuctionList.Add(InputAuction);
             //Act
             var result = await _AuctionRepo.UpdateAuctionStatus(InputAuction.AuctionId, AuctionStatus.Closed);
-            
+
             //Assert
             Assert.That(result.Status, Is.EqualTo(AuctionStatus.Closed));
             Console.WriteLine(InputAuction.Status.ToString());
 
-            
+
         }
-        
+
         [Test]
         public async Task T6AddBidToAuctionById_SeedData()
         {
@@ -95,7 +96,7 @@ namespace AuctionServiceAPI.Test
                 Status = AuctionStatus.Active,
                 CatalogId = AuctionList[0].CatalogId,
                 BidHistory = new List<BidDTO>(),
-                MinPrice = 5000, 
+                MinPrice = 5000,
                 EffectId = new EffectDTO
                 {
                     EffectId = Guid.NewGuid()
@@ -109,25 +110,16 @@ namespace AuctionServiceAPI.Test
                 UserId = Guid.NewGuid(),
                 Timestamp = DateTime.Now
             };
-            
+
             AuctionList.Add(InputAuction);
             //Act
             var result = await _AuctionRepo.AddBidToAuctionById(InputAuction.AuctionId, InputBid);
-            
+
             //Assert
             Assert.That(result.BidHistory.Count, Is.EqualTo(1));
             Console.WriteLine(InputAuction.BidHistory.Count);
         }
 
-        [Test]
-        public async Task T7SendAuctions_Based_Status_SeedData()
-        {
-            //arrange
-            var AuctionList = _AuctionRepo.SeedDataAuction();
-            //act 
-            var result = await _AuctionRepo.SendAuctionBasedOnStatus(AuctionStatus.Active);
-            //assert 
-            Assert.That(result.Count, Is.EqualTo(1));
-        }
+
     }
 }
