@@ -5,12 +5,12 @@ namespace AuctionServiceAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuctionServiceAPIController : ControllerBase
+public class AuctionController : ControllerBase
 {
    
-    private readonly ILogger<AuctionServiceAPIController> _logger;
+    private readonly ILogger<AuctionController> _logger;
 // herhenne
-    public AuctionServiceAPIController(ILogger<AuctionServiceAPIController> logger)
+    public AuctionController(ILogger<AuctionController> logger)
     {
         _logger = logger;
     }

@@ -68,11 +68,26 @@ namespace AuctionServiceAPI.Repositories
                 // Tjek om deadline-datoen er passeret
                 if (DateTime.UtcNow > catalog.EndDate)
                 {
+                    catalog.Status = CatalogStatus.Closed;
                     foreach (var auction in catalog.Auctions)
                     {
                         auction.Status = AuctionStatus.Closed;
                     }
                 }
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateCatalog(Catalog catalog)
+        {
+            var existingCatalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalog.CatalogId);
+            if (existingCatalog != null)
+            {
+                existingCatalog.Name = catalog.Name;
+                existingCatalog.StartDate = catalog.StartDate;
+                existingCatalog.EndDate = catalog.EndDate;
+                existingCatalog.Status = catalog.Status;
+                existingCatalog.Auctions = catalog.Auctions;
             }
             return Task.CompletedTask;
         }

@@ -4,7 +4,9 @@ public interface ICatalogRepository
 {
     Task<Catalog> AddCatalog(Catalog catalog);
     Task<bool> RemoveCatalog(Guid id);
-    
+
+    Task UpdateCatalog(Catalog catalog);
+
     Task<Catalog> GetCatalogById(Guid id);
     Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId);
 
