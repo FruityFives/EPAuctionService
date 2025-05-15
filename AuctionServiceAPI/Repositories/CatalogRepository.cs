@@ -59,7 +59,7 @@ namespace AuctionServiceAPI.Repositories
             return Task.FromResult(catalog?.Auctions ?? new List<Auction>());
         }
 
-        public Task HandleAuctionFinish(Guid catalogId)
+        public Task HandleAuctionFinish(Guid catalogId) // LAv en etst case for denne
         {
             var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalogId);
 
@@ -74,7 +74,6 @@ namespace AuctionServiceAPI.Repositories
                     }
                 }
             }
-
             return Task.CompletedTask;
         }
     }

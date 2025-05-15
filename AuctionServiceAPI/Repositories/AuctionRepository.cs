@@ -1,13 +1,18 @@
 using Models;
+using IAuctionRepository = AuctionServiceAPI.Repositories.IAuctionRepository;
 
 namespace AuctionServiceAPI.Repositories;
 
-public class AuctionRepository
+public class AuctionRepository : IAuctionRepository
 {
     private readonly List<Auction> ListOfAuctions = new();
-    private readonly List<Catalog> ListOfCatalogs = new();
     List<Catalog> TestList = new CatalogRepository().SeedData();
     
+    public Task<Auction> AddAuction(Auction auction)
+    {
+        ListOfAuctions.Add(auction);
+        return Task.FromResult(auction);
+    }
     public List<Auction> SeedDataAuction()
     {
         // Sample data
@@ -40,14 +45,7 @@ public class AuctionRepository
         });
         return ListOfAuctions;
     }
-    
-    public Task<Auction> AddAuction(Auction auction)
-    {
 
-        ListOfAuctions.Add(auction);
-        return Task.FromResult(auction);
-    }
-    
     public Task<bool> RemoveAuction(Guid id)
     {
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
@@ -58,19 +56,29 @@ public class AuctionRepository
         return Task.FromResult(true);
     }
 
-    public Task<Auction> UpdateAuctionStatus(Guid id)
+    public Task<Auction> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
-        // Find the auction by ID
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
         if (auction != null)
         {
-            // Update the status
-            auction.Status = AuctionStatus.Closed;
+            auction.Status = status;
             return Task.FromResult(auction);
         }
-        // If not found, return null or throw an exception
         return Task.FromResult<Auction>(null);
-        
+    }
+
+    public Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
+    {
+        var auctions = ListOfAuctions
+            .Where(a => a.CatalogId == catalogId && a.Status == status)
+            .ToList();
+        return Task.FromResult(auctions);
+    }
+
+    public Task<Auction> GetAuctionById(Guid id)
+    {
+        var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
+        return Task.FromResult(auction);
     }
 
     public Task<Auction> AddBidToAuctionById(Guid auctionId, BidDTO bid)
@@ -80,13 +88,9 @@ public class AuctionRepository
         {
             auction.BidHistory.Add(bid);
             auction.CurrentBid = bid;
-            //ListOfAuctions. mangler en metode til at opdatere auction listen i in-memory databasen
             return Task.FromResult(auction);
         }
-        
-        // If not found, return null or throw an exception
         return Task.FromResult<Auction>(null);
-        
     }
     
     public Task<List<Auction>> SendAuctionBasedOnStatus( AuctionStatus status)

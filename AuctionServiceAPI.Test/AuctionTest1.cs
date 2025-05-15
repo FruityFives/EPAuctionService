@@ -74,7 +74,7 @@ namespace AuctionServiceAPI.Test
             
             AuctionList.Add(InputAuction);
             //Act
-            var result = await _AuctionRepo.UpdateAuctionStatus(InputAuction.AuctionId);
+            var result = await _AuctionRepo.UpdateAuctionStatus(InputAuction.AuctionId, AuctionStatus.Closed);
             
             //Assert
             Assert.That(result.Status, Is.EqualTo(AuctionStatus.Closed));
