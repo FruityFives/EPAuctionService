@@ -1,7 +1,7 @@
 using Models;
 
 namespace AuctionServiceAPI.Repositories;
-public interface IAuctionRepository
+public interface IAuctionRepository 
 {
     Task<Auction> AddAuction(Auction auction);
     Task<bool> RemoveAuction(Guid id);

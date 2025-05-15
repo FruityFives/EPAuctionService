@@ -1,12 +1,20 @@
+using AuctionServiceAPI.Repositories;
 using Models;
 
 namespace AuctionServiceAPI.Services;
 
 public class AuctionService : IAuctionService
 {
-    public Task<Auction> CreateAuction(Auction auction)
+    private readonly IAuctionRepository _auctionRepository;
+
+    public AuctionService(IAuctionRepository auctionRepository)
     {
-        throw new NotImplementedException();
+        _auctionRepository = auctionRepository;
+    }
+    
+    public async Task<Auction> CreateAuction(Auction auction)
+    {
+        return await _auctionRepository.AddAuction(auction);
     }
 
     public Task<bool> DeleteAuction(Guid id)
