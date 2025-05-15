@@ -59,17 +59,22 @@ namespace AuctionServiceAPI.Repositories
             return Task.FromResult(catalog?.Auctions ?? new List<Auction>());
         }
 
-        public Task HandleAuctionFinish(Guid catalogId) // Når catalog har ramt sin deadline opdatere denne alle auctions til "Closed"
+        public Task HandleAuctionFinish(Guid catalogId)
         {
-            // Example: set all auctions in the catalog to closed
             var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalogId);
+
             if (catalog != null)
             {
-                foreach (var auction in catalog.Auctions)
+                // Tjek om deadline-datoen er passeret
+                if (DateTime.UtcNow > catalog.EndDate)
                 {
-                    auction.Status = AuctionStatus.Closed;
+                    foreach (var auction in catalog.Auctions)
+                    {
+                        auction.Status = AuctionStatus.Closed;
+                    }
                 }
             }
+
             return Task.CompletedTask;
         }
     }
