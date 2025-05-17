@@ -93,4 +93,20 @@ public class AuctionRepository : IAuctionRepository
         return Task.FromResult<Auction?>(null);
     }
 
+    public Task<Auction?> UpdateAuction(Auction auction)
+    {
+        var existingAuction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == auction.AuctionId);
+        if (existingAuction != null)
+        {
+            existingAuction.Name = auction.Name;
+            existingAuction.Status = auction.Status;
+            existingAuction.CatalogId = auction.CatalogId;
+            existingAuction.BidHistory = auction.BidHistory;
+            existingAuction.MinPrice = auction.MinPrice;
+            existingAuction.EffectId = auction.EffectId;
+            return Task.FromResult(existingAuction);
+        }
+        return Task.FromResult<Auction?>(null);
+    }
+
 }

@@ -105,24 +105,6 @@ namespace AuctionServiceAPI.Controllers
             return NoContent();
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCatalog(Guid id, [FromBody] Catalog catalog)
-        {
-            if (catalog == null || catalog.CatalogId != id)
-            {
-                return BadRequest("Catalog cannot be null and ID must match");
-            }
-
-            var existingCatalog = await _catalogService.GetCatalogById(id);
-            if (existingCatalog == null)
-            {
-                return NotFound();
-            }
-
-            await _catalogService.UpdateCatalog(catalog);
-            return NoContent();
-        }
-
 
     }
 }

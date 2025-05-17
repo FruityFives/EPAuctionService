@@ -39,9 +39,9 @@ public class CatalogService : ICatalogService
         await _catalogRepository.HandleAuctionFinish(catalogId);
     }
 
-    public async Task<Catalog> UpdateCatalog(Catalog catalog)
+    public async Task<Catalog?> UpdateCatalog(Catalog catalog)
     {
-        await _catalogRepository.UpdateCatalog(catalog);
-        return catalog;
+        return await _catalogRepository.UpdateCatalog(catalog);
     }
+
 }

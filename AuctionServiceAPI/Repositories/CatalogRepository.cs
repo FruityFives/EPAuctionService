@@ -69,16 +69,18 @@ namespace AuctionServiceAPI.Repositories
                 if (DateTime.UtcNow > catalog.EndDate)
                 {
                     catalog.Status = CatalogStatus.Closed;
+                    // Opdater alle auktioner i kataloget til "Closed"
                     foreach (var auction in catalog.Auctions)
                     {
                         auction.Status = AuctionStatus.Closed;
                     }
+
                 }
             }
             return Task.CompletedTask;
         }
 
-        public Task UpdateCatalog(Catalog catalog)
+        public Task<Catalog?> UpdateCatalog(Catalog catalog)
         {
             var existingCatalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalog.CatalogId);
             if (existingCatalog != null)
@@ -87,9 +89,10 @@ namespace AuctionServiceAPI.Repositories
                 existingCatalog.StartDate = catalog.StartDate;
                 existingCatalog.EndDate = catalog.EndDate;
                 existingCatalog.Status = catalog.Status;
-                existingCatalog.Auctions = catalog.Auctions;
+                return Task.FromResult(existingCatalog);
             }
-            return Task.CompletedTask;
+            return Task.FromResult<Catalog?>(null);
         }
+
     }
 }

@@ -9,7 +9,7 @@ public class Auction
     public Guid CatalogId { get; set; }  // FK
     public List<BidDTO> BidHistory { get; set; } = new(); // FK - Historik over bud
 
-    public Decimal MinPrice { get; set; }    // Det nuværende højeste bud - FK
+    public double MinPrice { get; set; }    // Det nuværende højeste bud - FK
     
     public BidDTO? CurrentBid { get; set; }  // Det nuværende højeste bud - FK
     
