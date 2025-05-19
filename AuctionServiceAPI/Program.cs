@@ -1,49 +1,63 @@
 using AuctionServiceAPI.Repositories;
 using AuctionServiceAPI.Services;
+using NLog;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+var logger = NLog.Web.NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
+logger.Debug("Starter auctionservice API");
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
-builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
-builder.Services.AddSingleton<IAuctionService, AuctionService>();
-builder.Services.AddSingleton<ICatalogService, CatalogService>();
-
-
-
-
-
-var app = builder.Build();
-
-
-// Seed data
-// Kald SeedData() her
-using (var scope = app.Services.CreateScope())
+try
 {
-    var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+    var builder = WebApplication.CreateBuilder(args);
 
-    if (catalogRepo is CatalogRepository repo)
+    // 2. Registrér NLog som logger - ryd eksisterende loggere:
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
+
+    // Add services to the container.
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
+    builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
+    builder.Services.AddSingleton<IAuctionService, AuctionService>();
+    builder.Services.AddSingleton<ICatalogService, CatalogService>();
+
+    var app = builder.Build();
+
+    // Seed data
+    using (var scope = app.Services.CreateScope())
     {
-        repo.SeedData();
+        var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+
+        if (catalogRepo is CatalogRepository repo)
+        {
+            repo.SeedData();
+        }
     }
-}
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
+}
+catch (Exception ex)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    logger.Error(ex, "Stopped program because of exception");
+    throw; // Genkast for at sikre at fejlen ikke bliver "slugt"
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+finally
+{
+    NLog.LogManager.Shutdown();
+}
