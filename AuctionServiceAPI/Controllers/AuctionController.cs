@@ -121,6 +121,7 @@ public class AuctionController : ControllerBase
     public async Task<IActionResult> CreateBidToAuctionById([FromBody] BidDTO bid)
     {
 
+
         Console.WriteLine("CreateBidToAuctionById called");
 
     if (bid == null)
@@ -131,22 +132,19 @@ public class AuctionController : ControllerBase
         var updatedAuction = await _auctionService.CreateBidToAuctionById(bid);
 
         _logger.LogInformation("CreateBidToAuctionById called for AuctionId: {AuctionId} with bid {@Bid}", auctionId, bid);
+        Console.WriteLine("CreateBidToAuctionById called");
 
-        if (bid == null)
-        {
-            _logger.LogWarning("CreateBidToAuctionById failed: Bid is null");
-            return BadRequest("Bid cannot be null");
-        }
 
-        var updatedAuction = await _auctionService.CreateBidToAuctionById(auctionId, bid);
+    if (bid == null)
+        return BadRequest("Bid cannot be null");
 
-        if (updatedAuction == null)
-        {
-            _logger.LogWarning("CreateBidToAuctionById failed: Auction with Id {AuctionId} not found", auctionId);
-            return NotFound();
-        }
 
         _logger.LogInformation("Bid created successfully on AuctionId {AuctionId} with BidId {BidId}", auctionId, bid.BidId);
+
+
+    try
+    {
+        var updatedAuction = await _auctionService.CreateBidToAuctionById(bid);
 
         return Ok(updatedAuction);
     }
