@@ -2,15 +2,22 @@ services:
   auctionserviceapi:
     build: ./AuctionServiceAPI
     container_name: auctionserviceapi
+    depends_on:
+      - loki
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_URLS=http://+:5002
     ports:
-      - "5002:5000"
+      - "5002:5002"
     restart: always
     networks:
       - haav
-  
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki:3100/loki/api/v1/push"
+        loki-external-labels: "app=auctionservice"
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -21,7 +28,25 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - haav
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - haav
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
 
 networks:
   haav:
-    driver: bridge
