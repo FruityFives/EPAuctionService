@@ -106,7 +106,7 @@ namespace AuctionServiceAPI.Test
             {
                 BidId = Guid.NewGuid(),
                 AuctionId = InputAuction.AuctionId,
-                Price = 10000,
+                Amount = 10000,
                 UserId = Guid.NewGuid(),
                 Timestamp = DateTime.Now
             };
