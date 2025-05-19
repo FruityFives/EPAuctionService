@@ -10,4 +10,6 @@ public interface ICatalogRepository
 
     Task HandleAuctionFinish(Guid catalogId); // Når catalog har ramt sin deadline opdatere denne alle auctions til "Closed"
     Task<Catalog?> UpdateCatalog(Catalog catalog);
+
+    Task<List<Catalog>> GetAllCatalogs();
 }

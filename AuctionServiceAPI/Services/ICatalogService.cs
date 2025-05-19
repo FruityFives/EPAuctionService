@@ -10,4 +10,6 @@ public interface ICatalogService
     Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId);
     Task HandleAuctionFinish(Guid catalogId); // Lukker auktioner i katalog, hvis deadline er overskredet
     Task<Catalog?> UpdateCatalog(Catalog catalog);
+
+    Task<List<Catalog>> GetAllCatalogs();
 }

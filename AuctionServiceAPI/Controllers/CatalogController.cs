@@ -105,6 +105,21 @@ namespace AuctionServiceAPI.Controllers
             return NoContent();
         }
 
+        //Get all catalogs
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllCatalogs()
+        {
+            await Console.Out.WriteLineAsync("Hej");
+
+            var catalogs = await _catalogService.GetAllCatalogs();
+            if (catalogs == null || catalogs.Count == 0)
+            {
+                return NotFound("No catalogs found");
+            }
+
+            return Ok(catalogs);
+        }
+
 
     }
 }

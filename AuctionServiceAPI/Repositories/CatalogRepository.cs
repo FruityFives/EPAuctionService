@@ -94,5 +94,10 @@ namespace AuctionServiceAPI.Repositories
             return Task.FromResult<Catalog?>(null);
         }
 
+        public Task<List<Catalog>> GetAllCatalogs()
+        {
+            return Task.FromResult(ListOfCatalogs);
+        }
+
     }
 }
