@@ -3,8 +3,10 @@ services:
     build: ./AuctionServiceAPI
     container_name: auctionserviceapi
     depends_on:
+      - rabbitmq
       - loki
     environment:
+      - RABBITMQ_HOST=rabbitmq
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5002
     ports:
@@ -50,3 +52,4 @@ services:
 
 networks:
   haav:
+

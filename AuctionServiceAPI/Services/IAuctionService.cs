@@ -8,7 +8,7 @@ public interface IAuctionService
     Task<Auction> GetAuctionById(Guid id);
     Task<bool> DeleteAuction(Guid id);
     Task<Auction> UpdateAuctionStatus(Guid id, AuctionStatus status);
-    Task<Auction> CreateBidToAuctionById(Guid auctionId, BidDTO bid);
+    Task<Auction> CreateBidToAuctionById(BidDTO bid);
     Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status);
     Task<Auction?> UpdateAuction(Auction auction);
 }

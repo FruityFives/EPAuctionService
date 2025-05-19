@@ -9,27 +9,32 @@ logger.Debug("Starter auctionservice API");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-
-    // 2. Registrér NLog som logger - ryd eksisterende loggere:
+// 2. Registrér NLog som logger - ryd eksisterende loggere:
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
+// Add services to the container.
 
-    // Add services to the container.
-    builder.Services.AddControllers();
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
+builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
+builder.Services.AddSingleton<IAuctionService, AuctionService>();
+builder.Services.AddSingleton<ICatalogService, CatalogService>();
 
-    builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
-    builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
-    builder.Services.AddSingleton<IAuctionService, AuctionService>();
-    builder.Services.AddSingleton<ICatalogService, CatalogService>();
 
-    var app = builder.Build();
 
-    // Seed data
-    using (var scope = app.Services.CreateScope())
-    {
-        var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+
+
+var app = builder.Build();
+
+
+// Seed data
+// Kald SeedData() her
+using (var scope = app.Services.CreateScope())
+{
+    var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
 
         if (catalogRepo is CatalogRepository repo)
         {
