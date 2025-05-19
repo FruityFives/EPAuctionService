@@ -44,4 +44,10 @@ public class CatalogService : ICatalogService
         return await _catalogRepository.UpdateCatalog(catalog);
     }
 
+    public async Task<List<Catalog>> GetAllCatalogs()
+    {
+        return await _catalogRepository.GetAllCatalogs();
+    }
+
+
 }

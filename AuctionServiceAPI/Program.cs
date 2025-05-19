@@ -20,6 +20,19 @@ builder.Services.AddSingleton<ICatalogService, CatalogService>();
 
 var app = builder.Build();
 
+
+// Seed data
+// Kald SeedData() her
+using (var scope = app.Services.CreateScope())
+{
+    var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+
+    if (catalogRepo is CatalogRepository repo)
+    {
+        repo.SeedData();
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

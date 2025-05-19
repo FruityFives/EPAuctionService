@@ -30,6 +30,13 @@ public class AuctionController : ControllerBase
             return BadRequest("Auction cannot be null");
         }
 
+        //check if the catalog exists
+        var catalogexist = await _catalogService.GetCatalogById(auction.CatalogId);
+        if (catalogexist == null)
+        {
+            return BadRequest("Catalog does not exist");
+        }
+
         // Call the service to create the auction
         var createdAuction = await _auctionService.CreateAuction(auction);
         //update the catalog
