@@ -17,14 +17,14 @@ public class AuctionService : IAuctionService
 
     public async Task<Auction> CreateAuction(Auction auction)
     {
-        // Sæt ID og status
+        // Sï¿½t ID og status
         auction.AuctionId = Guid.NewGuid();
         auction.Status = AuctionStatus.Active;
 
         // Gem auktionen i auktion-repo
         var createdAuction = await _auctionRepository.AddAuction(auction);
 
-        // Find kataloget og tilføj auktionen til dets liste
+        // Find kataloget og tilfj auktionen til dets liste
         var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId);
         if (catalog != null)
         {
@@ -61,24 +61,22 @@ public class AuctionService : IAuctionService
     }
 
 
-    public async Task<Auction> CreateBidToAuctionById(Guid auctionId, BidDTO bid)
+    public async Task<Auction> CreateBidToAuctionById(BidDTO bid)
     {
+        var auctionId = bid.AuctionId;
         var auction = await _auctionRepository.GetAuctionById(auctionId);
         if (auction == null)
+        {
+            Console.WriteLine($"Looking for auction with ID: {auctionId}");
             throw new Exception("Auction not found");
-
+        }
         if (auction.Status != AuctionStatus.Active)
         {
             throw new Exception("Auction is not active");
         }
-        var currentMax = (auction.CurrentBid?.Amount)
-                         ?? (auction.BidHistory.Count > 0 ? auction.BidHistory.Max(b => b.Amount) : (double?)null)
-                         ?? auction.MinPrice;
 
-        if (bid.Amount <= currentMax)
-            throw new Exception($"Bid must be higher than current max bid ({currentMax})");
 
-        //først her laver vi ændringer
+        //fï¿½rst her laver vi ï¿½ndringer
         bid.Timestamp = DateTime.UtcNow;
         auction.BidHistory.Add(bid);
         auction.CurrentBid = bid;

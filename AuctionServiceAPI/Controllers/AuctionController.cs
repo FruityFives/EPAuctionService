@@ -101,21 +101,22 @@ public class AuctionController : ControllerBase
 
     //Endpoint for create bid to auction by id
     [HttpPost("{auctionId}/bid")]
-    public async Task<IActionResult> CreateBidToAuctionById(Guid auctionId, [FromBody] BidDTO bid)
+    public async Task<IActionResult> CreateBidToAuctionById([FromBody] BidDTO bid)
     {
-        if (bid == null)
-        {
-            return BadRequest("Bid cannot be null");
-        }
+        Console.WriteLine("CreateBidToAuctionById called");
 
-        var updatedAuction = await _auctionService.CreateBidToAuctionById(auctionId, bid);
+    if (bid == null)
+        return BadRequest("Bid cannot be null");
 
-        if (updatedAuction == null)
-        {
-            return NotFound();
-        }
-
+    try
+    {
+        var updatedAuction = await _auctionService.CreateBidToAuctionById(bid);
         return Ok(updatedAuction);
+    }
+    catch (Exception ex)
+    {
+        return BadRequest(ex.Message);
+    }
     }
 
     //Endpoint for get active auctions by catalog id

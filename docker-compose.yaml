@@ -2,14 +2,15 @@ services:
   auctionserviceapi:
     build: ./AuctionServiceAPI
     container_name: auctionserviceapi
+    depends_on:
+      - rabbitmq
     environment:
+      - RABBITMQ_HOST=rabbitmq
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_URLS=http://+:5002
     ports:
-      - "5002:5000"
+      - "5002:5002"
     restart: always
-    networks:
-      - haav
   
   rabbitmq:
     image: rabbitmq:3-management
@@ -22,6 +23,4 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
 
 
-networks:
-  haav:
-    driver: bridge
+

@@ -8,6 +8,11 @@ public class AuctionRepository : IAuctionRepository
     private readonly List<Auction> ListOfAuctions = new();
     List<Catalog> TestList = new CatalogRepository().SeedData();
 
+    public AuctionRepository()
+    {
+        Console.WriteLine(" AuctionRepository seeded");
+        SeedDataAuction();
+    }
     public Task<Auction> AddAuction(Auction auction)
     {
         ListOfAuctions.Add(auction);
@@ -77,12 +82,15 @@ public class AuctionRepository : IAuctionRepository
 
     public Task<Auction> GetAuctionById(Guid id)
     {
+        Console.WriteLine($"Auction RepositoryLooking for auction with ID: {id}");
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
         return Task.FromResult(auction);
     }
 
-    public Task<Auction?> AddBidToAuctionById(Guid auctionId, BidDTO bid)
+    public Task<Auction?> AddBidToAuctionById(BidDTO bid)
     {
+        var auctionId = bid.AuctionId;
+        // Find the auction by ID
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == auctionId);
         if (auction != null)
         {

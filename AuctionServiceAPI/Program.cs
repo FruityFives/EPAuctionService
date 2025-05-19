@@ -13,6 +13,7 @@ builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
 builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
 builder.Services.AddSingleton<IAuctionService, AuctionService>();
 builder.Services.AddSingleton<ICatalogService, CatalogService>();
+builder.Services.AddHostedService<Worker>();
 
 
 
@@ -26,10 +27,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+    var auctionRepo = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
 
     if (catalogRepo is CatalogRepository repo)
     {
         repo.SeedData();
+    }
+    if (auctionRepo is AuctionRepository auctionRepository)
+    {
+        auctionRepository.SeedDataAuction();
     }
 }
 

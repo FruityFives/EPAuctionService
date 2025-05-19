@@ -12,7 +12,7 @@ public interface IAuctionRepository
     // Til service
     Task<Auction> GetAuctionById(Guid id);
 
-    Task<Auction?> AddBidToAuctionById(Guid auctionId, BidDTO bid);
+    Task<Auction?> AddBidToAuctionById(BidDTO bid);
 
     Task<Auction?> UpdateAuction(Auction auction);
 }
