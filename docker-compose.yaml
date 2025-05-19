@@ -18,6 +18,15 @@ services:
         loki-url: "http://loki:3100/loki/api/v1/push"
         loki-external-labels: "app=auctionservice"
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # Kommunikation mellem services
+      - "15672:15672"   # Web UI til at overvåge RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
   loki:
     image: grafana/loki:latest
@@ -27,7 +36,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - haav
-  
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -41,4 +50,3 @@ services:
 
 networks:
   haav:
-
