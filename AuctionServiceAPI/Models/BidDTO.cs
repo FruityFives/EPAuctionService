@@ -7,6 +7,6 @@ public class BidDTO
     public Guid UserId { get; set; }   // Bruger-id fra bruger-domænet
     public Guid AuctionId { get; set; }
 
-    public double Price { get; set; }
+    public double Amount { get; set; }
     public DateTime Timestamp { get; set; }
 }

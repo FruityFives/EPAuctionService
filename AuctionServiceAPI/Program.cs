@@ -1,3 +1,6 @@
+using AuctionServiceAPI.Repositories;
+using AuctionServiceAPI.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +9,14 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
+builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
+builder.Services.AddSingleton<IAuctionService, AuctionService>();
+builder.Services.AddSingleton<ICatalogService, CatalogService>();
+
+
+
+
 
 var app = builder.Build();
 
