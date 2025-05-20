@@ -12,9 +12,16 @@ namespace AuctionServiceAPI.Repositories
     {
         private readonly List<Catalog> ListOfCatalogs = new(); // liste af kataloger - 
         private readonly List<Auction> ListOfAuctions = new(); // liste af auktioner 
-        private readonly ILogger<CatalogRepository> _logger;
+                                                               //private readonly ILogger<CatalogRepository> _logger;
+
+
 
         private readonly IStoragePublisherRabbit _storagePublisherRabbit;
+
+        public CatalogRepository(IStoragePublisherRabbit storagePublisherRabbit)
+    {
+        _storagePublisherRabbit = storagePublisherRabbit ?? throw new ArgumentNullException(nameof(storagePublisherRabbit));
+    }
 
         public List<Catalog> SeedData()
         {
@@ -80,6 +87,7 @@ namespace AuctionServiceAPI.Repositories
                 // Update the catalog status to closed
                 catalog.Status = CatalogStatus.Closed;
 
+
                 // Set auction status to closed
                 foreach (var auction in auctions)
                 {
@@ -87,7 +95,7 @@ namespace AuctionServiceAPI.Repositories
                 }
 
 
-                _logger.LogInformation($"Catalog {catalogId} has been closed.");
+                //_logger.LogInformation($"Catalog {catalogId} has been closed.");
             }
             else
             {
@@ -141,7 +149,7 @@ namespace AuctionServiceAPI.Repositories
                     await _storagePublisherRabbit.PublishAuctionAsync(auctionDTO);
                 }
 
-                _logger.LogInformation($"Auction finished for catalog {catalogId}. Auction ID: {auctionItem.AuctionId}, Winner ID: {auctionItem.CurrentBid?.UserId}, Final Amount: {auctionItem.CurrentBid?.Amount}");
+                //_logger.LogInformation($"Auction finished for catalog {catalogId}. Auction ID: {auctionItem.AuctionId}, Winner ID: {auctionItem.CurrentBid?.UserId}, Final Amount: {auctionItem.CurrentBid?.Amount}");
 
                 return Task.CompletedTask;
             }

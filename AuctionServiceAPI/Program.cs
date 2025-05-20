@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using AuctionServiceAPI.Repositories;
 using AuctionServiceAPI.Services;
 using NLog;
@@ -22,6 +23,7 @@ builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
 builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
 builder.Services.AddSingleton<IAuctionService, AuctionService>();
 builder.Services.AddSingleton<ICatalogService, CatalogService>();
+builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
 builder.Services.AddHostedService<Worker>();
 
 

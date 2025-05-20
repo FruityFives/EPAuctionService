@@ -2,11 +2,14 @@ using Models;
 using RabbitMQ.Client;
 using System.Text.Json;
 
-public class RabbitMqBidPublisher
+namespace AuctionServiceAPI.Services;
+public class StoragePublisherRabbit : IStoragePublisherRabbit
 {
-    private readonly ILogger<RabbitMqBidPublisher> _logger;
+    private readonly ILogger<StoragePublisherRabbit> _logger;
 
-    public RabbitMqBidPublisher(ILogger<RabbitMqBidPublisher> logger)
+
+
+    public StoragePublisherRabbit(ILogger<StoragePublisherRabbit> logger)
     {
         _logger = logger;
     }
