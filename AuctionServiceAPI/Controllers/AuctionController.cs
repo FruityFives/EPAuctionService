@@ -85,7 +85,6 @@ public class AuctionController : ControllerBase
 
         if (catalog != null)
         {
-            catalog.Auctions.RemoveAll(a => a.AuctionId == auctionid);
             await _catalogService.UpdateCatalog(catalog);
             _logger.LogInformation("Catalog updated after deleting auction {AuctionId}", auctionid);
         }

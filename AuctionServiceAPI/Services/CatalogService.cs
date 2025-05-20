@@ -8,6 +8,9 @@ public class CatalogService : ICatalogService
 {
     private readonly ICatalogRepository _catalogRepository;
 
+
+
+
     public CatalogService(ICatalogRepository catalogRepository)
     {
         _catalogRepository = catalogRepository;
@@ -37,6 +40,7 @@ public class CatalogService : ICatalogService
     public async Task HandleAuctionFinish(Guid catalogId)
     {
         await _catalogRepository.HandleAuctionFinish(catalogId);
+
     }
 
     public async Task<Catalog?> UpdateCatalog(Catalog catalog)
@@ -47,6 +51,11 @@ public class CatalogService : ICatalogService
     public async Task<List<Catalog>> GetAllCatalogs()
     {
         return await _catalogRepository.GetAllCatalogs();
+    }
+    
+    public async Task EndCatalog(Guid catalogId)
+    {
+        await _catalogRepository.EndCatalog(catalogId);
     }
 
 

@@ -157,5 +157,17 @@ namespace AuctionServiceAPI.Controllers
             _logger.LogInformation("{Count} catalogs found", catalogs.Count);
             return Ok(catalogs);
         }
+
+        [HttpPost("{catalogId}/end")]
+        public async Task<IActionResult> EndCatalog(Guid catalogId)
+        {
+            _logger.LogInformation("Ending catalog with ID: {CatalogId}", catalogId);
+            await _catalogService.EndCatalog(catalogId);
+
+            _logger.LogInformation("Catalog ended with ID: {CatalogId}", catalogId);
+            return NoContent();
+        }
+
+        
     }
 }

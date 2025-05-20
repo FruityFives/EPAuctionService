@@ -50,7 +50,7 @@ namespace AuctionServiceAPI.Test
                 Name = "Jabir",
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(3),
-                Auctions = new List<Models.Auction>()
+                Status = CatalogStatus.Active
             };
             //Act
             var result = await _CatalogRepo.AddCatalog(InputCatalog);

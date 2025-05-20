@@ -28,7 +28,6 @@ public class AuctionService : IAuctionService
         var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId);
         if (catalog != null)
         {
-            catalog.Auctions.Add(createdAuction);
             await _catalogRepository.UpdateCatalog(catalog);
         }
 

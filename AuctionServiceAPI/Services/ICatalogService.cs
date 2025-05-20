@@ -11,5 +11,7 @@ public interface ICatalogService
     Task HandleAuctionFinish(Guid catalogId); // Lukker auktioner i katalog, hvis deadline er overskredet
     Task<Catalog?> UpdateCatalog(Catalog catalog);
 
+    Task EndCatalog(Guid catalogId); // Lukker kataloget og opdaterer alle auktioner til "Closed"
+
     Task<List<Catalog>> GetAllCatalogs();
 }

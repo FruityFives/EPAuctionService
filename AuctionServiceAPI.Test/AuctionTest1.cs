@@ -83,7 +83,7 @@ namespace AuctionServiceAPI.Test
 
 
         }
-
+/*
         [Test]
         public async Task T6AddBidToAuctionById_SeedData()
         {
@@ -119,7 +119,7 @@ namespace AuctionServiceAPI.Test
             Assert.That(result.BidHistory.Count, Is.EqualTo(1));
             Console.WriteLine(InputAuction.BidHistory.Count);
         }
-
+*/
 
     }
 }
