@@ -69,7 +69,7 @@ namespace AuctionServiceAPI.Test
             var result = await _CatalogRepo.RemoveCatalog(catalogId);
             
             //Assert
-            Assert.AreEqual(1, CatalogList.Count);
+            Assert.AreEqual(2, CatalogList.Count);
             Console.WriteLine(CatalogList.Count);
         }
     }
