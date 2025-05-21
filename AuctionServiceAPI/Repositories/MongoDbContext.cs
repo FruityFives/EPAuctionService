@@ -11,8 +11,8 @@ namespace AuctionServiceAPI.Repositories
     public class MongoDbContext
     {
         public IMongoDatabase Database { get; }
-        public IMongoCollection<Auction> AuctionCollection { get; }
-        public IMongoCollection<Catalog> CatalogCollection { get; }
+        public virtual IMongoCollection<Auction> AuctionCollection { get; }
+        public virtual IMongoCollection<Catalog> CatalogCollection { get; }
 
         public MongoDbContext(ILogger<MongoDbContext> logger, IConfiguration config)
         {

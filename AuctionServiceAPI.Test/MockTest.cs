@@ -8,7 +8,7 @@ using Models;
 using AuctionServiceAPI.Controllers;
 using AuctionServiceAPI.Repositories;
 using Microsoft.Extensions.Logging;
-
+using MongoDB.Driver;
 namespace AuctionServiceAPI.Test
 {
     // Mark this class as a test fixture for NUnit
@@ -18,13 +18,24 @@ namespace AuctionServiceAPI.Test
         // Mock object for the IAuctionRepository interface
         private Mock<ICatalogRepository> _mockRepo; // Til test cases 1-3
         private CatalogRepository _CatalogRepo;  // Til test case 4 ++
-        
+
+
         // Setup method runs before each test
         [SetUp]
         public void Setup()
         {
             _mockRepo = new Mock<ICatalogRepository>();
-            _CatalogRepo = new CatalogRepository();        }
+
+            // Mock CatalogCollection
+            var mockCatalogCollection = new Mock<IMongoCollection<Catalog>>();
+
+            // Mock MongoDbContext
+            var mockContext = new Mock<MongoDbContext>();
+            mockContext.Setup(c => c.CatalogCollection).Returns(mockCatalogCollection.Object);
+
+            // Brug den rigtige CatalogRepository med mocked context
+            _CatalogRepo = new CatalogRepository(mockContext.Object);
+        }
 
         // Test for creating a catalog and verifying the returned object
         [Test]
