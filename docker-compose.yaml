@@ -12,22 +12,37 @@ services:
     networks:
       - haav
   
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - haav
+    restart: always
+  
   auctionserviceapi:
     build: ./AuctionServiceAPI
     container_name: auctionserviceapi
     depends_on:
       - rabbitmq
       - loki
+      - mongodb
     environment:
       - RABBITMQ_HOST=rabbitmq
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5002
+      - MONGODB_URI=mongodb://mongodb:27017
+      - AUCTION_DB_NAME=AuctionServiceDb
+      - AUCTION_COLLECTION_NAME=AuctionCollection
+      - CATALOG_COLLECTION_NAME=CatalogCollection
     ports:
       - "5002:5002"
     restart: always
     networks:
       - haav
-
 
   loki:
     image: grafana/loki:latest
@@ -49,6 +64,8 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
 
+volumes:
+  mongodata:
+
 networks:
   haav:
-

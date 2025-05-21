@@ -20,6 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
 builder.Services.AddSingleton<IAuctionService, AuctionService>();
 builder.Services.AddSingleton<ICatalogService, CatalogService>();

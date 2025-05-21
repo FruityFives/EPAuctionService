@@ -1,8 +1,23 @@
 using Models;
+using MongoDB.Driver;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System;
+using AuctionServiceAPI.Repositories;
+
 public class CatalogRepository : ICatalogRepository
 {
-    private readonly List<Catalog> ListOfCatalogs = new();
+    private readonly List<Catalog> ListOfCatalogs;
     private readonly List<Auction> ListOfAuctions = new();
+    private readonly IMongoCollection<Catalog> _catalogCollection;
+
+    public CatalogRepository(MongoDbContext context)
+    {
+        _catalogCollection = context.CatalogCollection;
+        ListOfCatalogs = context.CatalogCollection.AsQueryable().ToList();
+        Console.WriteLine("CatalogRepository seeded");
+    }
 
     public Task<Catalog> AddCatalog(Catalog catalog)
     {
@@ -65,7 +80,7 @@ public class CatalogRepository : ICatalogRepository
         => Task.FromResult(ListOfCatalogs);
 
     public Task SaveAuction(Auction auction)
-        => Task.CompletedTask; // reference-type => ændringer allerede gemt
+        => Task.CompletedTask;
 
     public Task SaveCatalog(Catalog catalog)
         => Task.CompletedTask;
