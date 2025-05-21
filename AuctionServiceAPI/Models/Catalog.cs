@@ -8,7 +8,6 @@ public class Catalog
     public DateTime EndDate { get; set; }
 
     public CatalogStatus Status { get; set; } = CatalogStatus.Active;
-    public List<Auction> Auctions { get; set; } = new(); //Måske fjerner vi denne
 }
 
 public enum CatalogStatus

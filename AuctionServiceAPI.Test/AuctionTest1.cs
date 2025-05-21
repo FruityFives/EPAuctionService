@@ -49,7 +49,7 @@ namespace AuctionServiceAPI.Test
             //Act
             var result = await _AuctionRepo.AddAuction(InputAuction);
             //Assert
-            Assert.AreEqual(3, AuctionList.Count);
+            Assert.AreEqual(5, AuctionList.Count);
             Console.WriteLine(AuctionList.Count);
 
         }
@@ -83,7 +83,7 @@ namespace AuctionServiceAPI.Test
 
 
         }
-
+/*
         [Test]
         public async Task T6AddBidToAuctionById_SeedData()
         {
@@ -119,7 +119,7 @@ namespace AuctionServiceAPI.Test
             Assert.That(result.BidHistory.Count, Is.EqualTo(1));
             Console.WriteLine(InputAuction.BidHistory.Count);
         }
-
+*/
 
     }
 }

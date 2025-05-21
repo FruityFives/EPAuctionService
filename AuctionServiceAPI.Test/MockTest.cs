@@ -37,7 +37,7 @@ namespace AuctionServiceAPI.Test
                 Name = "TestCatalog",
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(3),
-                Auctions = new List<Models.Auction>()
+                Status = CatalogStatus.Active
             };
 
             // Setup the mock to return the input catalog when CreateCatalog is called

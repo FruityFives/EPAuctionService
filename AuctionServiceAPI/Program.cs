@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using AuctionServiceAPI.Repositories;
 using AuctionServiceAPI.Services;
 using NLog;
@@ -22,6 +23,10 @@ builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
 builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
 builder.Services.AddSingleton<IAuctionService, AuctionService>();
 builder.Services.AddSingleton<ICatalogService, CatalogService>();
+builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
+builder.Services.AddHostedService<Worker>();
+
+
 
 
 
@@ -30,15 +35,19 @@ builder.Services.AddSingleton<ICatalogService, CatalogService>();
 var app = builder.Build();
 
 
-// Seed data
-// Kald SeedData() her
-using (var scope = app.Services.CreateScope())
-{
-    var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+    // Seed data
+    using (var scope = app.Services.CreateScope())
+    {
+        var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
+        var auctionRepo = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
 
         if (catalogRepo is CatalogRepository repo)
         {
-            repo.SeedData();
+            repo.SeedDataCatalog();
+        }
+        if (auctionRepo is AuctionRepository ARepo)
+        {
+            ARepo.SeedDataAuction();
         }
     }
 
