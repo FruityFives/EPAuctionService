@@ -36,7 +36,6 @@ var app = builder.Build();
 
 
     // Seed data
-    // Kald SeedData() her
     using (var scope = app.Services.CreateScope())
     {
         var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
@@ -44,7 +43,7 @@ var app = builder.Build();
 
         if (catalogRepo is CatalogRepository repo)
         {
-            repo.SeedData();
+            repo.SeedDataCatalog();
         }
         if (auctionRepo is AuctionRepository ARepo)
         {

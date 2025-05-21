@@ -1,200 +1,72 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AuctionServiceAPI.Services;
 using Models;
-
-
-namespace AuctionServiceAPI.Repositories
+public class CatalogRepository : ICatalogRepository
 {
-    public class CatalogRepository : ICatalogRepository
+    private readonly List<Catalog> ListOfCatalogs = new();
+    private readonly List<Auction> ListOfAuctions = new();
+
+    public Task<Catalog> AddCatalog(Catalog catalog)
     {
-        private readonly List<Catalog> ListOfCatalogs = new(); // liste af kataloger - 
-        private readonly List<Auction> ListOfAuctions = new(); // liste af auktioner 
-                                                               //private readonly ILogger<CatalogRepository> _logger;
-
-
-
-        private readonly IStoragePublisherRabbit _storagePublisherRabbit;
-
-        public CatalogRepository(IStoragePublisherRabbit storagePublisherRabbit)
-    {
-        _storagePublisherRabbit = storagePublisherRabbit ?? throw new ArgumentNullException(nameof(storagePublisherRabbit));
+        ListOfCatalogs.Add(catalog);
+        return Task.FromResult(catalog);
     }
 
-        public List<Catalog> SeedData()
+    public List<Catalog> SeedDataCatalog()
+    {
+        ListOfCatalogs.Add(new Catalog
         {
-            // Initialize with some sample data
-            ListOfCatalogs.Add(new Catalog
-            {
-                CatalogId = Guid.Parse("f2b1c2e1-32dc-4ec7-9676-f1b1f469d5a7"),
-                Name = "Hudson",
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddDays(7)
-            });
-            ListOfCatalogs.Add(new Catalog
-            {
-                CatalogId = Guid.NewGuid(),
-                Name = "Abdu",
-                StartDate = DateTime.UtcNow.AddDays(-1),
-                EndDate = DateTime.UtcNow.AddDays(6)
-            });
-            return ListOfCatalogs;
-        }
+            CatalogId = Guid.Parse("d1f8c03f-8405-4d0e-b86b-6ad94ea4a3a7"),
+            Name = "Catalog 1",
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(7),
+            Status = CatalogStatus.Active
+        });
 
-        public Task<Catalog> AddCatalog(Catalog catalog)
+        ListOfCatalogs.Add(new Catalog
         {
-            ListOfCatalogs.Add(catalog);
-            return Task.FromResult(catalog);
-        }
+            CatalogId = Guid.Parse("e68e3d5f-1a12-4c0e-99e4-92793f3040d6"),
+            Name = "Catalog 2",
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(14),
+            Status = CatalogStatus.Closed
+        });
 
-        public Task<bool> RemoveCatalog(Guid id)
-        {
-            var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
-            if (catalog == null)
-                return Task.FromResult(false);
-
-            ListOfCatalogs.Remove(catalog);
-            return Task.FromResult(true);
-        }
-
-        public Task<Catalog> GetCatalogById(Guid id)
-        {
-            var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
-            return Task.FromResult(catalog);
-        }
-
-        public Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
-        {
-            var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalogId);
-            if (catalog != null)
-            {
-                var auctions = ListOfAuctions.Where(a => a.CatalogId == catalogId).ToList();
-                return Task.FromResult(auctions);
-            }
-            return Task.FromResult(new List<Auction>());
-        }
-
-        public async Task EndCatalog(Guid catalogId)
-        {
-            var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalogId);
-
-            var auctions = ListOfAuctions.Where(a => a.CatalogId == catalogId).ToList();
-
-            if (catalog != null)
-            {
-                // Update the catalog status to closed
-                catalog.Status = CatalogStatus.Closed;
-
-
-                // Set auction status to closed
-                foreach (var auction in auctions)
-                {
-                    auction.Status = AuctionStatus.Closed;
-                }
-
-
-                //_logger.LogInformation($"Catalog {catalogId} has been closed.");
-            }
-            else
-            {
-                throw new Exception("Catalog not found");
-            }
-
-            //Send auctions to message queue
-            foreach (var auction in auctions)
-            {
-                var auctionDTO = new AuctionDTO
-                {
-                    EffectId = auction.EffectId.EffectId,
-                    WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
-                    FinalAmount = auction.CurrentBid?.Amount ?? 0,
-                    IsSold = auction.CurrentBid != null,
-                };
-
-                // Publish the auction to the message queue
-                await _storagePublisherRabbit.PublishAuctionAsync(auctionDTO);
-            }
-        }
-
-        public async Task<Task> HandleAuctionFinish(Guid catalogId) // LAv en etst case for denne
-        {
-            var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalogId);
-            var auction = ListOfAuctions.FirstOrDefault(a => a.CatalogId == catalogId);
-
-            foreach (var auctionItem in ListOfAuctions)
-            {
-                if (auctionItem.CurrentBid == null)
-                {
-                    var auctionDTO = new AuctionDTO
-                    {
-                        EffectId = auctionItem.EffectId.EffectId,
-                        WinnerId = Guid.Empty,
-                        FinalAmount = 0,
-                        IsSold = false,
-                    };
-                }
-                else
-                {
-                    var auctionDTO = new AuctionDTO
-                    {
-                        EffectId = auctionItem.EffectId.EffectId,
-                        WinnerId = auctionItem.CurrentBid.UserId,
-                        FinalAmount = auctionItem.CurrentBid.Amount,
-                        IsSold = true,
-                    };
-
-                    // Publish the auction to the message queue
-                    await _storagePublisherRabbit.PublishAuctionAsync(auctionDTO);
-                }
-
-                //_logger.LogInformation($"Auction finished for catalog {catalogId}. Auction ID: {auctionItem.AuctionId}, Winner ID: {auctionItem.CurrentBid?.UserId}, Final Amount: {auctionItem.CurrentBid?.Amount}");
-
-                return Task.CompletedTask;
-            }
-
-            if (catalog != null && auction != null)
-            {
-                // Update the catalog status to closed
-                catalog.Status = CatalogStatus.Closed;
-
-                // Remove the auction from the list
-                ListOfAuctions.Remove(auction);
-
-
-            }
-            else
-            {
-                throw new Exception("Catalog or Auction not found");
-            }
-
-
-            return Task.CompletedTask;
-        }
-
-        public Task<Catalog?> UpdateCatalog(Catalog catalog)
-        {
-            var existingCatalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalog.CatalogId);
-            if (existingCatalog != null)
-            {
-                existingCatalog.Name = catalog.Name;
-                existingCatalog.StartDate = catalog.StartDate;
-                existingCatalog.EndDate = catalog.EndDate;
-                existingCatalog.Status = catalog.Status;
-                return Task.FromResult(existingCatalog);
-            }
-            return Task.FromResult<Catalog?>(null);
-        }
-
-        public Task<List<Catalog>> GetAllCatalogs()
-        {
-            return Task.FromResult(ListOfCatalogs);
-        }
-
-        Task ICatalogRepository.HandleAuctionFinish(Guid catalogId)
-        {
-            return HandleAuctionFinish(catalogId);
-        }
+        return ListOfCatalogs;
     }
+
+    public Task<bool> RemoveCatalog(Guid id)
+    {
+        var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
+        if (catalog == null) return Task.FromResult(false);
+        ListOfCatalogs.Remove(catalog);
+        return Task.FromResult(true);
+    }
+
+    public Task<Catalog> GetCatalogById(Guid id)
+        => Task.FromResult(ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id));
+
+    public Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
+        => Task.FromResult(ListOfAuctions.Where(a => a.CatalogId == catalogId).ToList());
+
+    public Task<Catalog?> UpdateCatalog(Catalog catalog)
+    {
+        var existing = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalog.CatalogId);
+        if (existing != null)
+        {
+            existing.Name = catalog.Name;
+            existing.StartDate = catalog.StartDate;
+            existing.EndDate = catalog.EndDate;
+            existing.Status = catalog.Status;
+            return Task.FromResult(existing);
+        }
+        return Task.FromResult<Catalog?>(null);
+    }
+
+    public Task<List<Catalog>> GetAllCatalogs()
+        => Task.FromResult(ListOfCatalogs);
+
+    public Task SaveAuction(Auction auction)
+        => Task.CompletedTask; // reference-type => ændringer allerede gemt
+
+    public Task SaveCatalog(Catalog catalog)
+        => Task.CompletedTask;
 }

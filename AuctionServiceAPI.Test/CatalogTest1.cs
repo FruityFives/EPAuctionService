@@ -31,7 +31,7 @@ namespace AuctionServiceAPI.Test
         {
             //Arrange
             var catalogId = Guid.Parse("f2b1c2e1-32dc-4ec7-9676-f1b1f469d5a7");
-            var CatalogList = _CatalogRepo.SeedData();
+            var CatalogList = _CatalogRepo.SeedDataCatalog();
             // Act
             var result = await _CatalogRepo.GetCatalogById(catalogId);
             // Assert
@@ -43,7 +43,7 @@ namespace AuctionServiceAPI.Test
         public async Task T5AddCatalog_SeedData()
         {
             //Arrange
-            var CatalogList = _CatalogRepo.SeedData();
+            var CatalogList = _CatalogRepo.SeedDataCatalog();
             var InputCatalog = new Catalog
             {
                 CatalogId = Guid.NewGuid(),
@@ -62,7 +62,7 @@ namespace AuctionServiceAPI.Test
         public async Task T6RemoveCatalog_SeedData()
         {
             //arrange
-            var CatalogList = _CatalogRepo.SeedData();
+            var CatalogList = _CatalogRepo.SeedDataCatalog();
             var catalogId = Guid.Parse("f2b1c2e1-32dc-4ec7-9676-f1b1f469d5a7");
             
             //Act
