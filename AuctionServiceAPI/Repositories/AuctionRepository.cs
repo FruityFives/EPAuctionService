@@ -83,10 +83,15 @@ public class AuctionRepository : IAuctionRepository
         return Task.FromResult(auctions);
     }
 
-    public Task<Auction> GetAuctionById(Guid id)
+    public async Task<Auction> GetAuctionById(Guid id)
     {
+        return await _auctionCollection.Find(a => a.AuctionId == id).FirstOrDefaultAsync();
+
+        /*
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
+
         return Task.FromResult(auction);
+        */
     }
 
     public Task<Auction?> UpdateAuction(Auction auction)
