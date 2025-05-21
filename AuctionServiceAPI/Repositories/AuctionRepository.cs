@@ -53,13 +53,18 @@ public class AuctionRepository : IAuctionRepository
         return ListOfAuctions;
     }
 
-    public Task<bool> RemoveAuction(Guid id)
+    public async Task<bool> RemoveAuction(Guid id)
     {
-        var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
-        if (auction == null) return Task.FromResult(false);
+        var result = await _auctionCollection.DeleteOneAsync(a => a.AuctionId == id);
 
-        ListOfAuctions.Remove(auction);
-        return Task.FromResult(true);
+        return result.DeletedCount > 0;        /*
+var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
+if (auction == null) return Task.FromResult(false);
+
+ListOfAuctions.Remove(auction);
+return Task.FromResult(true);
+
+*/
     }
 
     public Task<Auction?> UpdateAuctionStatus(Guid id, AuctionStatus status)
@@ -87,11 +92,6 @@ public class AuctionRepository : IAuctionRepository
     {
         return await _auctionCollection.Find(a => a.AuctionId == id).FirstOrDefaultAsync();
 
-        /*
-        var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
-
-        return Task.FromResult(auction);
-        */
     }
 
     public Task<Auction?> UpdateAuction(Auction auction)
