@@ -1,4 +1,6 @@
 using Models;
+using MongoDB.Driver;
+using System.Linq;
 
 namespace AuctionServiceAPI.Repositories;
 

@@ -1,17 +1,22 @@
 using Models;
+using MongoDB.Driver;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace AuctionServiceAPI.Repositories;
 
 public class AuctionRepository : IAuctionRepository
 {
     private readonly List<Auction> ListOfAuctions = new();
-    private readonly List<Catalog> TestList = new CatalogRepository().SeedDataCatalog();
-    private readonly ImongoCollection<Auction> _auctionCollection;
+    private readonly List<Catalog> TestList;
+    private readonly IMongoCollection<Auction> _auctionCollection;
 
     public AuctionRepository(MongoDbContext context)
     {
         _auctionCollection = context.AuctionCollection;
         ListOfAuctions = context.AuctionCollection.AsQueryable().ToList();
+        TestList = new CatalogRepository(context).SeedDataCatalog();
         Console.WriteLine("AuctionRepository seeded");
     }
 
@@ -20,11 +25,7 @@ public class AuctionRepository : IAuctionRepository
         await _auctionCollection.InsertOneAsync(auction);
         return auction;
     }
-    public AuctionRepository()
-    {
-        Console.WriteLine("AuctionRepository seeded");
-        SeedDataAuction();
-    }
+
     public List<Auction> SeedDataAuction()
     {
         ListOfAuctions.Add(new Auction
