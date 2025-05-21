@@ -6,19 +6,25 @@ public class AuctionRepository : IAuctionRepository
 {
     private readonly List<Auction> ListOfAuctions = new();
     private readonly List<Catalog> TestList = new CatalogRepository().SeedDataCatalog();
+    private readonly ImongoCollection<Auction> _auctionCollection;
 
+    public AuctionRepository(MongoDbContext context)
+    {
+        _auctionCollection = context.AuctionCollection;
+        ListOfAuctions = context.AuctionCollection.AsQueryable().ToList();
+        Console.WriteLine("AuctionRepository seeded");
+    }
+
+    public async Task<Auction> AddAuction(Auction auction)
+    {
+        await _auctionCollection.InsertOneAsync(auction);
+        return auction;
+    }
     public AuctionRepository()
     {
         Console.WriteLine("AuctionRepository seeded");
         SeedDataAuction();
     }
-
-    public Task<Auction> AddAuction(Auction auction)
-    {
-        ListOfAuctions.Add(auction);
-        return Task.FromResult(auction);
-    }
-
     public List<Auction> SeedDataAuction()
     {
         ListOfAuctions.Add(new Auction

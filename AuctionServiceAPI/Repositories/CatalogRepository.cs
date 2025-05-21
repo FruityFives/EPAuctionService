@@ -3,6 +3,15 @@ public class CatalogRepository : ICatalogRepository
 {
     private readonly List<Catalog> ListOfCatalogs = new();
     private readonly List<Auction> ListOfAuctions = new();
+    private readonly ImongoCollection<Catalog> _catalogCollection;
+    
+    
+    public CatalogRepository(MongoDbContext context)
+    {
+        _catalogCollection = context.CatalogCollection;
+        ListOfCatalogs = context.CatalogCollection.AsQueryable().ToList();
+        Console.WriteLine("CatalogRepository seeded");
+    }
 
     public Task<Catalog> AddCatalog(Catalog catalog)
     {
