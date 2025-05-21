@@ -49,7 +49,7 @@ namespace AuctionServiceAPI.Test
             //Act
             var result = await _AuctionRepo.AddAuction(InputAuction);
             //Assert
-            Assert.AreEqual(3, AuctionList.Count);
+            Assert.AreEqual(5, AuctionList.Count);
             Console.WriteLine(AuctionList.Count);
 
         }

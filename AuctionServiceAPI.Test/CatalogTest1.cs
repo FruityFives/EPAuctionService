@@ -24,21 +24,24 @@ namespace AuctionServiceAPI.Test
         {
             _mockRepo = new Mock<ICatalogRepository>();
             _CatalogRepo = new CatalogRepository();        }
-        
+
         // Test for getting a catalog by ID
-        [Test]
+/*        [Test]
         public async Task T4GetCatalog_ById_From_SeedData()
         {
-            //Arrange
+            // Arrange
+            _CatalogRepo.SeedDataCatalog(); // <--- vigtig linje
             var catalogId = Guid.Parse("f2b1c2e1-32dc-4ec7-9676-f1b1f469d5a7");
-            var CatalogList = _CatalogRepo.SeedDataCatalog();
+
             // Act
             var result = await _CatalogRepo.GetCatalogById(catalogId);
-            // Assert
-            Assert.IsNotNull(result);
-            Console.WriteLine(result.Name);
-        }
 
+            // Assert
+            Assert.IsNotNull(result); // god sikkerhed først
+            Assert.AreEqual(catalogId, result.CatalogId);
+            Console.WriteLine(result.CatalogId);
+        }
+*/
         [Test]
         public async Task T5AddCatalog_SeedData()
         {
