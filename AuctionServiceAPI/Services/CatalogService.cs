@@ -2,6 +2,7 @@ using Models;
 using AuctionServiceAPI.Repositories;
 
 namespace AuctionServiceAPI.Services;
+
 public class CatalogService : ICatalogService
 {
     private readonly ICatalogRepository _catalogRepository;
@@ -23,15 +24,15 @@ public class CatalogService : ICatalogService
 
     public Task<bool> DeleteCatalog(Guid id) => _catalogRepository.RemoveCatalog(id);
 
-   public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
+    public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
     {
-    var catalog = await _catalogRepository.GetCatalogById(catalogId);
-    if (catalog == null) throw new Exception("Catalog not found");
+        var catalog = await _catalogRepository.GetCatalogById(catalogId);
+        if (catalog == null) throw new Exception("Catalog not found");
 
-    var allAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
-    var closedAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
+        var allAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
+        var closedAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
 
-    return allAuctions.Concat(closedAuctions).ToList(); // returnér begge typer
+        return allAuctions.Concat(closedAuctions).ToList(); // returnér begge typer
     }
 
     public Task<Catalog> GetCatalogById(Guid id)
@@ -43,34 +44,34 @@ public class CatalogService : ICatalogService
     public Task<List<Catalog>> GetAllCatalogs()
         => _catalogRepository.GetAllCatalogs();
 
-public async Task EndCatalog(Guid catalogId)
-{
-    var catalog = await _catalogRepository.GetCatalogById(catalogId)
-                  ?? throw new Exception("Catalog not found");
-
-    var activeAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
-    var closedAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
-    var auctions = activeAuctions.Concat(closedAuctions).ToList();
-
-    catalog.Status = CatalogStatus.Closed;
-    await _catalogRepository.SaveCatalog(catalog);
-
-    foreach (var auction in auctions)
+    public async Task EndCatalog(Guid catalogId)
     {
-        auction.Status = AuctionStatus.Closed;
-        await _auctionRepository.SaveAuction(auction); // VIGTIG: dette skal bruge IAuctionRepository
+        var catalog = await _catalogRepository.GetCatalogById(catalogId)
+                      ?? throw new Exception("Catalog not found");
 
-        var dto = new AuctionDTO
+        var activeAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
+        var closedAuctions = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
+        var auctions = activeAuctions.Concat(closedAuctions).ToList();
+
+        catalog.Status = CatalogStatus.Closed;
+        await _catalogRepository.SaveCatalog(catalog);
+
+        foreach (var auction in auctions)
         {
-            EffectId = auction.EffectId.EffectId,
-            WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
-            FinalAmount = auction.CurrentBid?.Amount ?? 0,
-            IsSold = auction.CurrentBid != null
-        };
+            auction.Status = AuctionStatus.Closed;
+            await _auctionRepository.SaveAuction(auction); // VIGTIG: dette skal bruge IAuctionRepository
 
-        await _storagePublisher.PublishAuctionAsync(dto);
+            var dto = new AuctionDTO
+            {
+                EffectId = auction.EffectId.EffectId,
+                WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
+                FinalAmount = auction.CurrentBid?.Amount ?? 0,
+                IsSold = auction.CurrentBid != null
+            };
+
+            await _storagePublisher.PublishAuctionAsync(dto);
+        }
     }
-}
     public async Task HandleAuctionFinish(Guid catalogId)
     {
         var catalog = await _catalogRepository.GetCatalogById(catalogId)

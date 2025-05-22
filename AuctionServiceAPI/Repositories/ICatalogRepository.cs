@@ -12,6 +12,7 @@ public interface ICatalogRepository
     Task<Catalog?> UpdateCatalog(Catalog catalog);
     Task<List<Catalog>> GetAllCatalogs();
 
+
     Task SaveAuction(Auction auction); // ny
     Task SaveCatalog(Catalog catalog); // ny
 }

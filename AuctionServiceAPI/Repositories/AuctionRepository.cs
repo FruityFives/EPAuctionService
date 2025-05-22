@@ -53,17 +53,23 @@ public class AuctionRepository : IAuctionRepository
         return ListOfAuctions;
     }
 
-    public Task<bool> RemoveAuction(Guid id)
+    public async Task<bool> RemoveAuction(Guid id)
     {
-        var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
-        if (auction == null) return Task.FromResult(false);
+        var result = await _auctionCollection.DeleteOneAsync(a => a.AuctionId == id);
 
-        ListOfAuctions.Remove(auction);
-        return Task.FromResult(true);
+        return result.DeletedCount > 0;
     }
 
-    public Task<Auction?> UpdateAuctionStatus(Guid id, AuctionStatus status)
+    public async Task<Auction?> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
+        var update = Builders<Auction>.Update.Set(a => a.Status, status);
+
+        return await _auctionCollection.FindOneAndUpdateAsync(
+            a => a.AuctionId == id,
+            update,
+            new FindOneAndUpdateOptions<Auction> { ReturnDocument = ReturnDocument.After }
+        );
+        /*
         var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
         if (auction != null)
         {
@@ -72,21 +78,28 @@ public class AuctionRepository : IAuctionRepository
         }
 
         return Task.FromResult<Auction?>(null);
+
+        */
     }
 
-    public Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
+    public async Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
     {
+        return await _auctionCollection
+    .Find(a => a.CatalogId == catalogId && a.Status == status)
+    .ToListAsync();
+        /*
         var auctions = ListOfAuctions
             .Where(a => a.CatalogId == catalogId && a.Status == status)
             .ToList();
 
         return Task.FromResult(auctions);
+        */
     }
 
-    public Task<Auction> GetAuctionById(Guid id)
+    public async Task<Auction> GetAuctionById(Guid id)
     {
-        var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
-        return Task.FromResult(auction);
+        return await _auctionCollection.Find(a => a.AuctionId == id).FirstOrDefaultAsync();
+
     }
 
     public Task<Auction?> UpdateAuction(Auction auction)
@@ -108,9 +121,13 @@ public class AuctionRepository : IAuctionRepository
         return Task.FromResult<Auction?>(null);
     }
 
-    public Task SaveAuction(Auction auction)
+    public async Task SaveAuction(Auction auction)
     {
+        var filter = Builders<Auction>.Filter.Eq(a => a.AuctionId, auction.AuctionId);
+        await _auctionCollection.ReplaceOneAsync(filter, auction);
+        /*
         // Da objekter er reference-typer, behøver vi ikke gøre noget her
         return Task.CompletedTask;
+        */
     }
 }
