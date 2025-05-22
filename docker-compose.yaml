@@ -1,17 +1,16 @@
 services:
-
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"     # Kommunikation mellem services
-      - "15672:15672"   # Web UI til at overvåge RabbitMQ
+      - "5672:5672" # Kommunikation mellem services
+      - "15672:15672" # Web UI til at overvåge RabbitMQ
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     networks:
       - haav
-  
+
   mongodb:
     image: mongo
     container_name: mongodb
@@ -22,7 +21,7 @@ services:
     networks:
       - haav
     restart: always
-  
+
   auctionserviceapi:
     build: ./AuctionServiceAPI
     container_name: auctionserviceapi
