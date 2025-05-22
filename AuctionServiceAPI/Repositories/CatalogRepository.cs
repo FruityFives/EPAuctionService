@@ -29,7 +29,7 @@ public class CatalogRepository : ICatalogRepository
     {
         await _catalogCollection.InsertOneAsync(catalog);
         _logger.LogInformation($"Catalog {catalog.Name} added with ID: {catalog.CatalogId}");
-        return catalog;
+        return catalog; //s
     }
 
     public List<Catalog> SeedDataCatalog()
