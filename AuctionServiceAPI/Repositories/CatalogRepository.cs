@@ -12,17 +12,20 @@ public class CatalogRepository : ICatalogRepository
     private readonly List<Auction> ListOfAuctions = new();
     private readonly IMongoCollection<Catalog> _catalogCollection;
 
+    private readonly IMongoCollection<Auction> _auctionCollection;
+
     public CatalogRepository(MongoDbContext context)
     {
         _catalogCollection = context.CatalogCollection;
+        _auctionCollection = context.AuctionCollection;
         ListOfCatalogs = context.CatalogCollection.AsQueryable().ToList();
         Console.WriteLine("CatalogRepository seeded");
     }
 
-    public Task<Catalog> AddCatalog(Catalog catalog)
+    public async Task<Catalog> AddCatalog(Catalog catalog)
     {
-        ListOfCatalogs.Add(catalog);
-        return Task.FromResult(catalog);
+        await _catalogCollection.InsertOneAsync(catalog);
+        return catalog;
     }
 
     public List<Catalog> SeedDataCatalog()
@@ -50,20 +53,48 @@ public class CatalogRepository : ICatalogRepository
 
     public Task<bool> RemoveCatalog(Guid id)
     {
-        var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
-        if (catalog == null) return Task.FromResult(false);
-        ListOfCatalogs.Remove(catalog);
-        return Task.FromResult(true);
+        return _catalogCollection.DeleteOneAsync(c => c.CatalogId == id)
+            .ContinueWith(task => task.Result.DeletedCount > 0);
+
+        /*
+    var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
+    if (catalog == null) return Task.FromResult(false);
+    ListOfCatalogs.Remove(catalog);
+    return Task.FromResult(true);
+    */
     }
 
-    public Task<Catalog> GetCatalogById(Guid id)
-        => Task.FromResult(ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id));
-
-    public Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
-        => Task.FromResult(ListOfAuctions.Where(a => a.CatalogId == catalogId).ToList());
-
-    public Task<Catalog?> UpdateCatalog(Catalog catalog)
+    public async Task<Catalog> GetCatalogById(Guid id)
     {
+        return await _catalogCollection.Find(c => c.CatalogId == id).FirstOrDefaultAsync();
+        /*
+        var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
+        return Task.FromResult(catalog);
+        */
+    }
+
+    public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
+    {
+        return await _auctionCollection
+            .Find(a => a.CatalogId == catalogId)
+            .ToListAsync();
+    }
+
+    public async Task<Catalog?> UpdateCatalog(Catalog catalog)
+    {
+        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
+        var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
+
+        bool updateSucceeded = result.IsAcknowledged && result.ModifiedCount > 0;
+
+        if (updateSucceeded)
+        {
+            return catalog;
+        }
+
+        return null;
+
+        /*
         var existing = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalog.CatalogId);
         if (existing != null)
         {
@@ -74,14 +105,26 @@ public class CatalogRepository : ICatalogRepository
             return Task.FromResult(existing);
         }
         return Task.FromResult<Catalog?>(null);
+        */
     }
 
     public Task<List<Catalog>> GetAllCatalogs()
-        => Task.FromResult(ListOfCatalogs);
+    {
+        return _catalogCollection
+            .Find(c => true)
+            .ToListAsync();
+        /*
+        return Task.FromResult(ListOfCatalogs);
+        */
+    }
 
     public Task SaveAuction(Auction auction)
         => Task.CompletedTask;
 
-    public Task SaveCatalog(Catalog catalog)
-        => Task.CompletedTask;
+    public async Task SaveCatalog(Catalog catalog)
+    {
+        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
+        await _catalogCollection.ReplaceOneAsync(filter, catalog);
+
+    }
 }
