@@ -10,30 +10,30 @@ logger.Debug("Starter auctionservice API");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-// 2. Registrér NLog som logger - ryd eksisterende loggere:
+    // 2. Registrér NLog som logger - ryd eksisterende loggere:
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
-// Add services to the container.
+    // Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
-builder.Services.AddSingleton<MongoDbContext>();
-builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
-builder.Services.AddSingleton<IAuctionService, AuctionService>();
-builder.Services.AddSingleton<ICatalogService, CatalogService>();
-builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
-builder.Services.AddHostedService<Worker>();
-
-
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+    builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
+    builder.Services.AddSingleton<MongoDbContext>();
+    builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
+    builder.Services.AddSingleton<IAuctionService, AuctionService>();
+    builder.Services.AddSingleton<ICatalogService, CatalogService>();
+    builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
+    builder.Services.AddHostedService<Worker>();
 
 
 
 
 
-var app = builder.Build();
+
+
+    var app = builder.Build();
 
 
     // Seed data

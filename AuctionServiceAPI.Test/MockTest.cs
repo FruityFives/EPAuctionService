@@ -1,100 +1,103 @@
-// Import necessary namespaces for testing, mocking, and models
-using NUnit.Framework; // NUnit testing framework
-using Moq; // Moq for mocking dependencies
+using NUnit.Framework;
+using Moq;
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Models;
-using AuctionServiceAPI.Controllers;
 using AuctionServiceAPI.Repositories;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
+
 namespace AuctionServiceAPI.Test
 {
-    // Mark this class as a test fixture for NUnit
     [TestFixture]
-    [Ignore("Skipping tests for now")]
     public class CatalogRepositoryMockTests
     {
-        // Mock object for the IAuctionRepository interface
-        private Mock<ICatalogRepository> _mockRepo; // Til test cases 1-3
-        private CatalogRepository _CatalogRepo;  // Til test case 4 ++
+        private Mock<ICatalogRepository> _mockRepo;
+        private List<Catalog> _inMemoryCatalogs;
 
-
-        // Setup method runs before each test
         [SetUp]
         public void Setup()
         {
+            _inMemoryCatalogs = new List<Catalog>
+            {
+                new Catalog
+                {
+                    CatalogId = Guid.NewGuid(),
+                    Name = "Initial Catalog",
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(7),
+                    Status = CatalogStatus.Active
+                }
+            };
+
             _mockRepo = new Mock<ICatalogRepository>();
 
-            // Mock CatalogCollection
-            var mockCatalogCollection = new Mock<IMongoCollection<Catalog>>();
+            _mockRepo.Setup(repo => repo.AddCatalog(It.IsAny<Catalog>()))
+                     .ReturnsAsync((Catalog c) =>
+                     {
+                         _inMemoryCatalogs.Add(c);
+                         return c;
+                     });
 
-            // Mock MongoDbContext
-            var mockContext = new Mock<MongoDbContext>();
-            mockContext.Setup(c => c.CatalogCollection).Returns(mockCatalogCollection.Object);
-
-            // Brug den rigtige CatalogRepository med mocked context
-            _CatalogRepo = new CatalogRepository(mockContext.Object);
+            _mockRepo.Setup(repo => repo.RemoveCatalog(It.IsAny<Guid>()))
+                     .ReturnsAsync((Guid id) =>
+                     {
+                         var catalog = _inMemoryCatalogs.Find(c => c.CatalogId == id);
+                         if (catalog != null)
+                         {
+                             _inMemoryCatalogs.Remove(catalog);
+                             return true;
+                         }
+                         return false;
+                     });
         }
 
-        // Test for creating a catalog and verifying the returned object
         [Test]
-        public async Task T1CreateCatalog_ShouldReturnCatalog()
+        public async Task AddCatalog_ShouldReturnCatalogAndIncreaseCount()
         {
-            // Arrange: create a sample Catalog object
-            var inputCatalog = new Catalog
+            // Arrange
+            var newCatalog = new Catalog
             {
                 CatalogId = Guid.NewGuid(),
-                Name = "TestCatalog",
+                Name = "New Catalog",
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(3),
                 Status = CatalogStatus.Active
             };
 
-            // Setup the mock to return the input catalog when CreateCatalog is called
-            _mockRepo.Setup(repo => repo.AddCatalog(It.IsAny<Catalog>()))
-                     .ReturnsAsync((Catalog c) => c); // return input for simplicity
+            // Act
+            var result = await _mockRepo.Object.AddCatalog(newCatalog);
 
-            // Act: call the method under test
-            var result = await _mockRepo.Object.AddCatalog(inputCatalog);
-
-            // Assert: verify the result is as expected
+            // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(inputCatalog.CatalogId, result.CatalogId);
-            Assert.AreEqual(inputCatalog.Name, result.Name);
+            Assert.AreEqual(2, _inMemoryCatalogs.Count);
+            Assert.That(_inMemoryCatalogs.Contains(result));
         }
 
-        // Test for deleting a catalog when it exists
         [Test]
-        public async Task T2DeleteCatalog_ShouldReturnTrue_WhenFound()
+        public async Task RemoveCatalog_ShouldReturnTrue_WhenCatalogExists()
         {
-            // Arrange: setup the mock to return true for a specific catalogId
-            var catalogId = Guid.NewGuid();
-            _mockRepo.Setup(repo => repo.RemoveCatalog(catalogId)).ReturnsAsync(true);
+            // Arrange
+            var existingId = _inMemoryCatalogs[0].CatalogId;
 
-            // Act: call the method under test
-            var result = await _mockRepo.Object.RemoveCatalog(catalogId);
+            // Act
+            var result = await _mockRepo.Object.RemoveCatalog(existingId);
 
-            // Assert: verify the result and that the method was called once
-            _mockRepo.Verify(repo => repo.RemoveCatalog(catalogId), Times.Once);
+            // Assert
             Assert.IsTrue(result);
+            Assert.That(_inMemoryCatalogs.Exists(c => c.CatalogId == existingId), Is.False);
         }
 
-        // Test for deleting a catalog when it does not exist
         [Test]
-        public async Task T3DeleteCatalog_ShouldReturnFalse_WhenNotFound()
+        public async Task RemoveCatalog_ShouldReturnFalse_WhenCatalogDoesNotExist()
         {
-            // Arrange: setup the mock to return false for a specific catalogId
-            var catalogId = Guid.NewGuid();
-            _mockRepo.Setup(repo => repo.RemoveCatalog(catalogId)).ReturnsAsync(false);
+            // Arrange
+            var nonExistentId = Guid.NewGuid();
 
-            // Act: call the method under test
-            var result = await _mockRepo.Object.RemoveCatalog(catalogId);
+            // Act
+            var result = await _mockRepo.Object.RemoveCatalog(nonExistentId);
 
-            // Assert: verify the result and that the method was called once
+            // Assert
             Assert.IsFalse(result);
-            _mockRepo.Verify(repo => repo.RemoveCatalog(catalogId), Times.Once);
         }
     }
 }

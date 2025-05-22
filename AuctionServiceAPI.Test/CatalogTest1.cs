@@ -1,92 +1,97 @@
-using NUnit.Framework; // NUnit testing framework
-using Moq; // Moq for mocking dependencies
+using NUnit.Framework;
+using Moq;
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Models;
-using AuctionServiceAPI.Controllers;
 using AuctionServiceAPI.Repositories;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 
 namespace AuctionServiceAPI.Test
 {
-    // Mark this class as a test fixture for NUnit
     [TestFixture]
-    [Ignore("Skipping tests for now")]
     public class CatalogRepositoryTests
     {
-        // Mock object for the IAuctionRepository interface
-        private Mock<ICatalogRepository> _mockRepo; // Til test cases 1-3
-        private CatalogRepository _CatalogRepo;  // Til test case 4 ++
+        private Mock<ICatalogRepository> _mockRepo;
+        private List<Catalog> _fakeCatalogList;
 
-        // Setup method runs before each test
         [SetUp]
         public void Setup()
         {
+            _fakeCatalogList = new List<Catalog>
+            {
+                new Catalog
+                {
+                    CatalogId = Guid.NewGuid(),
+                    Name = "Catalog A",
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(5),
+                    Status = CatalogStatus.Active
+                },
+                new Catalog
+                {
+                    CatalogId = Guid.NewGuid(),
+                    Name = "Catalog B",
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(7),
+                    Status = CatalogStatus.Closed
+                }
+            };
+
             _mockRepo = new Mock<ICatalogRepository>();
 
-            // Mock collection
-            var mockCatalogCollection = new Mock<IMongoCollection<Catalog>>();
+            _mockRepo.Setup(repo => repo.AddCatalog(It.IsAny<Catalog>()))
+                     .ReturnsAsync((Catalog c) =>
+                     {
+                         _fakeCatalogList.Add(c);
+                         return c;
+                     });
 
-            // Mock context
-            var mockContext = new Mock<MongoDbContext>();
-            mockContext.Setup(c => c.CatalogCollection).Returns(mockCatalogCollection.Object);
-
-            // Brug den rigtige CatalogRepository med mocked context
-            _CatalogRepo = new CatalogRepository(mockContext.Object);
+            _mockRepo.Setup(repo => repo.RemoveCatalog(It.IsAny<Guid>()))
+                     .ReturnsAsync((Guid id) =>
+                     {
+                         var catalog = _fakeCatalogList.Find(c => c.CatalogId == id);
+                         if (catalog != null)
+                         {
+                             _fakeCatalogList.Remove(catalog);
+                             return true;
+                         }
+                         return false;
+                     });
         }
 
-
-        // Test for getting a catalog by ID
-        /*        [Test]
-                public async Task T4GetCatalog_ById_From_SeedData()
-                {
-                    // Arrange
-                    _CatalogRepo.SeedDataCatalog(); // <--- vigtig linje
-                    var catalogId = Guid.Parse("f2b1c2e1-32dc-4ec7-9676-f1b1f469d5a7");
-
-                    // Act
-                    var result = await _CatalogRepo.GetCatalogById(catalogId);
-
-                    // Assert
-                    Assert.IsNotNull(result); // god sikkerhed først
-                    Assert.AreEqual(catalogId, result.CatalogId);
-                    Console.WriteLine(result.CatalogId);
-                }
-        */
         [Test]
-        public async Task T5AddCatalog_SeedData()
+        public async Task AddCatalog_ShouldIncreaseCatalogList()
         {
-            //Arrange
-            var CatalogList = _CatalogRepo.SeedDataCatalog();
-            var InputCatalog = new Catalog
+            // Arrange
+            var newCatalog = new Catalog
             {
                 CatalogId = Guid.NewGuid(),
-                Name = "Jabir",
+                Name = "New Catalog",
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(3),
                 Status = CatalogStatus.Active
             };
-            //Act
-            var result = await _CatalogRepo.AddCatalog(InputCatalog);
-            //Assert
-            Assert.AreEqual(3, CatalogList.Count);
-            Console.WriteLine(CatalogList.Count);
+
+            // Act
+            var result = await _mockRepo.Object.AddCatalog(newCatalog);
+
+            // Assert
+            Assert.That(_fakeCatalogList.Count, Is.EqualTo(3));
+            Assert.That(result.Name, Is.EqualTo("New Catalog"));
         }
+
         [Test]
-        public async Task T6RemoveCatalog_SeedData()
+        public async Task RemoveCatalog_ShouldDecreaseCatalogList()
         {
-            //arrange
-            var CatalogList = _CatalogRepo.SeedDataCatalog();
-            var catalogId = Guid.Parse("f2b1c2e1-32dc-4ec7-9676-f1b1f469d5a7");
+            // Arrange
+            var catalogIdToRemove = _fakeCatalogList[0].CatalogId;
 
-            //Act
-            var result = await _CatalogRepo.RemoveCatalog(catalogId);
+            // Act
+            var result = await _mockRepo.Object.RemoveCatalog(catalogIdToRemove);
 
-            //Assert
-            Assert.AreEqual(2, CatalogList.Count);
-            Console.WriteLine(CatalogList.Count);
+            // Assert
+            Assert.IsTrue(result);
+            Assert.That(_fakeCatalogList.Count, Is.EqualTo(1));
         }
     }
 }

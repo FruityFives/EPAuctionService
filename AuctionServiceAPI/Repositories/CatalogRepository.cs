@@ -56,21 +56,12 @@ public class CatalogRepository : ICatalogRepository
         return _catalogCollection.DeleteOneAsync(c => c.CatalogId == id)
             .ContinueWith(task => task.Result.DeletedCount > 0);
 
-        /*
-    var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
-    if (catalog == null) return Task.FromResult(false);
-    ListOfCatalogs.Remove(catalog);
-    return Task.FromResult(true);
-    */
     }
 
     public async Task<Catalog> GetCatalogById(Guid id)
     {
         return await _catalogCollection.Find(c => c.CatalogId == id).FirstOrDefaultAsync();
-        /*
-        var catalog = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == id);
-        return Task.FromResult(catalog);
-        */
+
     }
 
     public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
@@ -94,18 +85,6 @@ public class CatalogRepository : ICatalogRepository
 
         return null;
 
-        /*
-        var existing = ListOfCatalogs.FirstOrDefault(c => c.CatalogId == catalog.CatalogId);
-        if (existing != null)
-        {
-            existing.Name = catalog.Name;
-            existing.StartDate = catalog.StartDate;
-            existing.EndDate = catalog.EndDate;
-            existing.Status = catalog.Status;
-            return Task.FromResult(existing);
-        }
-        return Task.FromResult<Catalog?>(null);
-        */
     }
 
     public Task<List<Catalog>> GetAllCatalogs()
@@ -113,9 +92,6 @@ public class CatalogRepository : ICatalogRepository
         return _catalogCollection
             .Find(c => true)
             .ToListAsync();
-        /*
-        return Task.FromResult(ListOfCatalogs);
-        */
     }
 
     public Task SaveAuction(Auction auction)
