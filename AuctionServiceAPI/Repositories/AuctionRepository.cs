@@ -10,7 +10,6 @@ namespace AuctionServiceAPI.Repositories;
 public class AuctionRepository : IAuctionRepository
 {
     private readonly List<Auction> ListOfAuctions = new();
-    private readonly List<Catalog> TestList;
     private readonly IMongoCollection<Auction> _auctionCollection;
     private readonly ILogger<AuctionRepository> _logger;
 
@@ -18,7 +17,7 @@ public class AuctionRepository : IAuctionRepository
     {
         _logger = logger;
         _auctionCollection = context.AuctionCollection;
-        ListOfAuctions = context.AuctionCollection.AsQueryable().ToList();
+        ListOfAuctions = _auctionCollection.AsQueryable().ToList();
         Console.WriteLine("AuctionRepository seeded");
     }
 
@@ -36,7 +35,7 @@ public class AuctionRepository : IAuctionRepository
             AuctionId = Guid.Parse("6f8c03f1-8405-4d0e-b86b-6ad94ea4a3a7"),
             Name = "Auction 1",
             Status = AuctionStatus.Active,
-            CatalogId = TestList[0].CatalogId,
+            // CatalogId = TestList[0].CatalogId, // Kommenteret ud for at undgå NullReferenceException
             BidHistory = new List<BidDTO>(),
             MinPrice = 5000,
             EffectId = new EffectDTO { EffectId = Guid.NewGuid() }
@@ -47,7 +46,7 @@ public class AuctionRepository : IAuctionRepository
             AuctionId = Guid.Parse("b68e3d5f-1a12-4c0e-99e4-92793f3040d6"),
             Name = "Auction 2",
             Status = AuctionStatus.Closed,
-            CatalogId = TestList[1].CatalogId,
+            // CatalogId = TestList[1].CatalogId, // Kommenteret ud for at undgå NullReferenceException
             BidHistory = new List<BidDTO>(),
             MinPrice = 10000,
             EffectId = new EffectDTO { EffectId = Guid.NewGuid() }

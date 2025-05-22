@@ -22,7 +22,7 @@ namespace AuctionServiceAPI.Repositories
 
         public MongoDbContext(ILogger<MongoDbContext> logger, IConfiguration config)
         {
-            var connectionString = config["MONGODB_URI"] ?? "mongodb://mongodb:27017";
+            var connectionString = config["MONGODB_URI"] ?? "mongodb://mongo:27017";
             var dbName = config["AUCTION_DB_NAME"] ?? "AuctionServiceDB";
             var collectionAuction = config["AUCTION_COLLECTION_NAME"] ?? "AuctionCollection";
             var collectionCatalog = config["CATALOG_COLLECTION_NAME"] ?? "CatalogCollection";
