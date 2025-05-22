@@ -60,6 +60,7 @@ public class AuctionController : ControllerBase
         return Ok(result);
     }
 
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAuction(Guid id)
     {
