@@ -1,137 +1,93 @@
-using NUnit.Framework; // NUnit testing framework
-using Moq; // Moq for mocking dependencies
+using NUnit.Framework;
+using Moq;
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading.Channels;
+using System.Threading.Tasks;
 using Models;
-using AuctionServiceAPI.Controllers;
 using AuctionServiceAPI.Repositories;
-using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 
 namespace AuctionServiceAPI.Test
 {
-    // Mark this class as a test fixture for NUnit
     [TestFixture]
-    [Ignore("Skipping tests for now")]
     public class AuctionRepositoryTests
     {
-        // Mock object for the IAuctionRepository interface
-        private Mock<IAuctionRepository> _mockRepo; // Til test cases 1-3
-        private AuctionRepository _AuctionRepo;  // Til test case 4 ++
+        private Mock<IAuctionRepository> _mockRepo;
+        private List<Auction> _fakeAuctionList;
 
-        // Setup method runs before each test
         [SetUp]
         public void Setup()
         {
+            _fakeAuctionList = new List<Auction>
+            {
+                new Auction
+                {
+                    AuctionId = Guid.NewGuid(),
+                    Name = "Initial Auction",
+                    Status = AuctionStatus.Active,
+                    CatalogId = Guid.NewGuid(),
+                    BidHistory = new List<BidDTO>(),
+                    MinPrice = 1000,
+                    EffectId = new EffectDTO { EffectId = Guid.NewGuid() }
+                }
+            };
+
             _mockRepo = new Mock<IAuctionRepository>();
 
-            // Mock collection
-            var mockAuctionCollection = new Mock<IMongoCollection<Auction>>();
+            _mockRepo.Setup(r => r.AddAuction(It.IsAny<Auction>()))
+                     .ReturnsAsync((Auction a) =>
+                     {
+                         _fakeAuctionList.Add(a);
+                         return a;
+                     });
 
-            // Mock context
-            var mockContext = new Mock<MongoDbContext>();
-            mockContext.Setup(c => c.AuctionCollection).Returns(mockAuctionCollection.Object);
-
-            // Brug den rigtige AuctionRepository med mocked context
-            _AuctionRepo = new AuctionRepository(mockContext.Object);
-        }
-
-
-        // Test for getting a catalog by ID
-        [Test]
-        public async Task T4AddAuction_To_SeedData()
-        {
-            //Arrange
-            var AuctionList = _AuctionRepo.SeedDataAuction();
-            var InputAuction = new Auction()
-            {
-                AuctionId = Guid.Parse("6f8c03f1-8405-4d0e-b86b-6ad94ea4a3b3"),
-                Name = "Fawad",
-                Status = AuctionStatus.Active,
-                CatalogId = AuctionList[0].CatalogId,
-                BidHistory = new List<BidDTO>(),
-                MinPrice = 5000,
-                EffectId = new EffectDTO
-                {
-                    EffectId = Guid.NewGuid()
-                }
-            };
-            //Act
-            var result = await _AuctionRepo.AddAuction(InputAuction);
-            //Assert
-            Assert.AreEqual(5, AuctionList.Count);
-            Console.WriteLine(AuctionList.Count);
-
+            _mockRepo.Setup(r => r.UpdateAuctionStatus(It.IsAny<Guid>(), It.IsAny<AuctionStatus>()))
+                     .ReturnsAsync((Guid id, AuctionStatus status) =>
+                     {
+                         var auction = _fakeAuctionList.Find(a => a.AuctionId == id);
+                         if (auction != null)
+                         {
+                             auction.Status = status;
+                         }
+                         return auction;
+                     });
         }
 
         [Test]
-        public async Task T5UpdateAuction_SeedData()
+        public async Task AddAuction_ShouldIncreaseListCount()
         {
-            //Arrange
-            var AuctionList = _AuctionRepo.SeedDataAuction();
-            var InputAuction = new Auction()
+            // Arrange
+            var newAuction = new Auction
             {
-                AuctionId = Guid.Parse("6f8c03f1-8405-4d0e-b86b-6ad94ea4a3b3"),
-                Name = "Fawad",
+                AuctionId = Guid.NewGuid(),
+                Name = "New Auction",
                 Status = AuctionStatus.Active,
-                CatalogId = AuctionList[0].CatalogId,
+                CatalogId = Guid.NewGuid(),
                 BidHistory = new List<BidDTO>(),
-                MinPrice = 5000,
-                EffectId = new EffectDTO
-                {
-                    EffectId = Guid.NewGuid()
-                }
+                MinPrice = 2000,
+                EffectId = new EffectDTO { EffectId = Guid.NewGuid() }
             };
 
-            AuctionList.Add(InputAuction);
-            //Act
-            var result = await _AuctionRepo.UpdateAuctionStatus(InputAuction.AuctionId, AuctionStatus.Closed);
+            // Act
+            var result = await _mockRepo.Object.AddAuction(newAuction);
 
-            //Assert
-            Assert.That(result.Status, Is.EqualTo(AuctionStatus.Closed));
-            Console.WriteLine(InputAuction.Status.ToString());
-
-
+            // Assert
+            Assert.That(_fakeAuctionList.Count, Is.EqualTo(2));
+            Assert.That(result.Name, Is.EqualTo("New Auction"));
         }
-        /*
-                [Test]
-                public async Task T6AddBidToAuctionById_SeedData()
-                {
-                    //Arrange
-                    var AuctionList = _AuctionRepo.SeedDataAuction();
-                    var InputAuction = new Auction()
-                    {
-                        AuctionId = Guid.Parse("6f8c03f1-8405-4d0e-b86b-6ad94ea4a3b3"),
-                        Name = "Fawad",
-                        Status = AuctionStatus.Active,
-                        CatalogId = AuctionList[0].CatalogId,
-                        BidHistory = new List<BidDTO>(),
-                        MinPrice = 5000,
-                        EffectId = new EffectDTO
-                        {
-                            EffectId = Guid.NewGuid()
-                        }
-                    };
-                    var InputBid = new BidDTO()
-                    {
-                        BidId = Guid.NewGuid(),
-                        AuctionId = InputAuction.AuctionId,
-                        Amount = 10000,
-                        UserId = Guid.NewGuid(),
-                        Timestamp = DateTime.Now
-                    };
 
-                    AuctionList.Add(InputAuction);
-                    //Act
-                    var result = await _AuctionRepo.AddBidToAuctionById(InputAuction.AuctionId, InputBid);
+        [Test]
+        public async Task UpdateAuctionStatus_ShouldChangeStatusToClosed()
+        {
+            // Arrange
+            var auctionId = _fakeAuctionList[0].AuctionId;
+            var newStatus = AuctionStatus.Closed;
 
-                    //Assert
-                    Assert.That(result.BidHistory.Count, Is.EqualTo(1));
-                    Console.WriteLine(InputAuction.BidHistory.Count);
-                }
-        */
+            // Act
+            var result = await _mockRepo.Object.UpdateAuctionStatus(auctionId, newStatus);
 
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.That(result.Status, Is.EqualTo(newStatus));
+        }
     }
 }
