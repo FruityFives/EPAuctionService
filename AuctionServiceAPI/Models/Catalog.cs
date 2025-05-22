@@ -1,11 +1,20 @@
-namespace AuctionServiceAPI.Models;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace Models;
 
 public class Catalog
 {
-    public Guid Id { get; set; }
+    [BsonId]
+    public Guid CatalogId { get; set; }
     public string Name { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
-    public List<Auction> Auctions { get; set; } = new();
+    public CatalogStatus Status { get; set; } = CatalogStatus.Active;
+}
+
+public enum CatalogStatus
+{
+    Active, // Kataloget er aktivt og kan indeholde auktioner
+    Closed, // Kataloget er lukket og kan ikke indeholde auktioner
 }
