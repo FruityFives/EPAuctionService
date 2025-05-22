@@ -10,8 +10,9 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>2.1.0</InformationalVersion>
+    <InformationalVersion>3.0.0</InformationalVersion>
     <Description>
+      3.0.0 First Release of AuctionService API
       2.1.0 Removed unused items such as WeatherForecast
       2.0.0 Addede endpoint for semantic versionering
       1.0.0 Updated with semantic versioning
