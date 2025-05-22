@@ -69,17 +69,6 @@ public class AuctionRepository : IAuctionRepository
             update,
             new FindOneAndUpdateOptions<Auction> { ReturnDocument = ReturnDocument.After }
         );
-        /*
-        var auction = ListOfAuctions.FirstOrDefault(a => a.AuctionId == id);
-        if (auction != null)
-        {
-            auction.Status = status;
-            return Task.FromResult<Auction?>(auction);
-        }
-
-        return Task.FromResult<Auction?>(null);
-
-        */
     }
 
     public async Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
@@ -87,13 +76,6 @@ public class AuctionRepository : IAuctionRepository
         return await _auctionCollection
     .Find(a => a.CatalogId == catalogId && a.Status == status)
     .ToListAsync();
-        /*
-        var auctions = ListOfAuctions
-            .Where(a => a.CatalogId == catalogId && a.Status == status)
-            .ToList();
-
-        return Task.FromResult(auctions);
-        */
     }
 
     public async Task<Auction> GetAuctionById(Guid id)
@@ -125,9 +107,5 @@ public class AuctionRepository : IAuctionRepository
     {
         var filter = Builders<Auction>.Filter.Eq(a => a.AuctionId, auction.AuctionId);
         await _auctionCollection.ReplaceOneAsync(filter, auction);
-        /*
-        // Da objekter er reference-typer, behøver vi ikke gøre noget her
-        return Task.CompletedTask;
-        */
     }
 }
