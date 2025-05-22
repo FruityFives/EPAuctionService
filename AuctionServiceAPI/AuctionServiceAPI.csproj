@@ -10,8 +10,9 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>4.0.0</InformationalVersion>
+    <InformationalVersion>5.0.0</InformationalVersion>
     <Description>
+      5.0.0 Added RabbitMQ and NLog
       4.0.0 Little change to MongoDBContext
       3.0.0 First Release of AuctionService API
       2.1.0 Removed unused items such as WeatherForecast
