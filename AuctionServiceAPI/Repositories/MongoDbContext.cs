@@ -8,6 +8,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace AuctionServiceAPI.Repositories
 {
+    public interface IMongoDbContext
+    {
+        IMongoCollection<Auction> AuctionCollection { get; }
+        IMongoCollection<Catalog> CatalogCollection { get; }
+    }
+
     public class MongoDbContext
     {
         public IMongoDatabase Database { get; }
