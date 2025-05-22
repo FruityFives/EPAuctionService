@@ -5,17 +5,20 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using AuctionServiceAPI.Repositories;
+using Microsoft.Extensions.Logging;
 
 public class CatalogRepository : ICatalogRepository
 {
     private readonly List<Catalog> ListOfCatalogs;
     private readonly List<Auction> ListOfAuctions = new();
     private readonly IMongoCollection<Catalog> _catalogCollection;
-
     private readonly IMongoCollection<Auction> _auctionCollection;
+    private readonly ILogger<CatalogRepository> _logger;
 
-    public CatalogRepository(MongoDbContext context)
+    /// Constructor
+    public CatalogRepository(MongoDbContext context, ILogger<CatalogRepository> logger)
     {
+        _logger = logger;
         _catalogCollection = context.CatalogCollection;
         _auctionCollection = context.AuctionCollection;
         ListOfCatalogs = context.CatalogCollection.AsQueryable().ToList();
@@ -25,6 +28,7 @@ public class CatalogRepository : ICatalogRepository
     public async Task<Catalog> AddCatalog(Catalog catalog)
     {
         await _catalogCollection.InsertOneAsync(catalog);
+        _logger.LogInformation($"Catalog {catalog.Name} added with ID: {catalog.CatalogId}");
         return catalog;
     }
 
@@ -51,56 +55,75 @@ public class CatalogRepository : ICatalogRepository
         return ListOfCatalogs;
     }
 
-    public Task<bool> RemoveCatalog(Guid id)
+    public async Task<bool> RemoveCatalog(Guid id)
     {
-        return _catalogCollection.DeleteOneAsync(c => c.CatalogId == id)
-            .ContinueWith(task => task.Result.DeletedCount > 0);
+        var result = await _catalogCollection.DeleteOneAsync(c => c.CatalogId == id);
+        if (result.DeletedCount == 0)
+        {
+            _logger.LogWarning($"No catalog found to delete with ID: {id}");
+            return false;
+        }
 
+        _logger.LogInformation($"Catalog with ID: {id} removed");
+        return true;
     }
 
     public async Task<Catalog> GetCatalogById(Guid id)
     {
-        return await _catalogCollection.Find(c => c.CatalogId == id).FirstOrDefaultAsync();
-
+        var catalog = await _catalogCollection.Find(c => c.CatalogId == id).FirstOrDefaultAsync();
+        if (catalog == null)
+        {
+            _logger.LogWarning($"Catalog with ID: {id} not found.");
+        }
+        else
+        {
+            _logger.LogInformation($"Catalog with ID: {id} retrieved.");
+        }
+        return catalog;
     }
 
     public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
     {
-        return await _auctionCollection
-            .Find(a => a.CatalogId == catalogId)
-            .ToListAsync();
+        _logger.LogInformation($"Fetching auctions for Catalog ID: {catalogId}");
+        var auctions = await _auctionCollection.Find(a => a.CatalogId == catalogId).ToListAsync();
+        _logger.LogInformation($"Found {auctions.Count} auctions for Catalog ID: {catalogId}");
+        return auctions;
     }
 
     public async Task<Catalog?> UpdateCatalog(Catalog catalog)
     {
         var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
         var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
-
         bool updateSucceeded = result.IsAcknowledged && result.ModifiedCount > 0;
-
         if (updateSucceeded)
         {
+            _logger.LogInformation($"Catalog with ID: {catalog.CatalogId} updated successfully.");
             return catalog;
         }
-
+        _logger.LogWarning($"Update failed for Catalog with ID: {catalog.CatalogId}. Catalog may not exist.");
         return null;
-
     }
 
-    public Task<List<Catalog>> GetAllCatalogs()
+    public async Task<List<Catalog>> GetAllCatalogs()
     {
-        return _catalogCollection
-            .Find(c => true)
-            .ToListAsync();
+        _logger.LogInformation("Retrieving all catalogs.");
+        var catalogs = await _catalogCollection.Find(c => true).ToListAsync();
+        _logger.LogInformation($"Retrieved {catalogs.Count} catalogs.");
+        return catalogs;
     }
-
-    public Task SaveAuction(Auction auction)
-        => Task.CompletedTask;
 
     public async Task SaveCatalog(Catalog catalog)
     {
         var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
-        await _catalogCollection.ReplaceOneAsync(filter, catalog);
+        var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
 
+        if (result.IsAcknowledged && result.ModifiedCount > 0)
+        {
+            _logger.LogInformation($"Catalog with ID: {catalog.CatalogId} saved successfully.");
+        }
+        else
+        {
+            _logger.LogWarning($"Failed to save catalog with ID: {catalog.CatalogId}. It may not exist.");
+        }
     }
 }
