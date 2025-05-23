@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Text.Json.Serialization; // 👈 Tilføj dette
 using AuctionServiceAPI.Repositories;
 using AuctionServiceAPI.Services;
 using NLog;
@@ -10,15 +11,20 @@ logger.Debug("Starter auctionservice API");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    // 2. Registrér NLog som logger - ryd eksisterende loggere:
+
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
-    // Add services to the container.
 
-    builder.Services.AddControllers();
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    // 👇 Tilføj enum-konverter
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+
     builder.Services.AddSingleton<IAuctionRepository, AuctionRepository>();
     builder.Services.AddSingleton<MongoDbContext>();
     builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
@@ -27,16 +33,9 @@ try
     builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
     builder.Services.AddHostedService<Worker>();
 
-
-
-
-
-
-
     var app = builder.Build();
 
-
-    // Seed data
+    // 👇 Seed testdata (som du allerede har)
     using (var scope = app.Services.CreateScope())
     {
         var catalogRepo = scope.ServiceProvider.GetRequiredService<ICatalogRepository>();
@@ -52,7 +51,6 @@ try
         }
     }
 
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
@@ -60,9 +58,7 @@ try
     }
 
     app.UseHttpsRedirection();
-
     app.UseAuthorization();
-
     app.MapControllers();
 
     app.Run();
@@ -70,7 +66,7 @@ try
 catch (Exception ex)
 {
     logger.Error(ex, "Stopped program because of exception");
-    throw; // Genkast for at sikre at fejlen ikke bliver "slugt"
+    throw;
 }
 finally
 {
