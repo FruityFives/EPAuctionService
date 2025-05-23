@@ -35,6 +35,23 @@ namespace AuctionServiceAPI.Controllers
             }
         }
 
+        [HttpGet("all-auctions-today")]
+        public async Task<IActionResult> GetAllAuctionsToday()
+        {
+            _logger.LogInformation("GetAllAuctionsToday called");
+
+            var auctions = await _catalogService.GetAllActiveAuctions();
+
+            if (!auctions.Any())
+            {
+                _logger.LogWarning("No active auctions found");
+                return NotFound("No active auctions today");
+            }
+
+            return Ok(auctions);
+        }
+
+
         [HttpGet("version")]
         public async Task<Dictionary<string, string>> GetVersion()
         {

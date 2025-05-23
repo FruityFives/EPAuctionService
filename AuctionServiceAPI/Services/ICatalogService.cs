@@ -5,6 +5,9 @@ namespace AuctionServiceAPI.Services;
 public interface ICatalogService
 {
     Task<Catalog> CreateCatalog(Catalog catalog);
+
+    Task<List<Auction>> GetAllActiveAuctions();
+
     Task<bool> DeleteCatalog(Guid id);
     Task<Catalog> GetCatalogById(Guid id);
     Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId);
