@@ -51,7 +51,6 @@ namespace AuctionServiceAPI.Controllers
             return Ok(auctions);
         }
 
-
         [HttpGet("version")]
         public async Task<Dictionary<string, string>> GetVersion()
         {
@@ -74,6 +73,22 @@ namespace AuctionServiceAPI.Controllers
 
             _logger.LogInformation("GetVersion called, returning service info");
             return props;
+        }
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllCatalogs()
+        {
+            _logger.LogInformation("GetAllCatalogs called");
+
+            var catalogs = await _catalogService.GetAllCatalogs();
+
+            if (!catalogs.Any())
+            {
+                _logger.LogWarning("No catalogs found");
+                return NotFound("No catalogs found");
+            }
+
+            return Ok(catalogs);
         }
 
         [HttpPost]
@@ -184,22 +199,6 @@ namespace AuctionServiceAPI.Controllers
                 _logger.LogError(ex, "Error ending catalog with ID: {CatalogId}", catalogId);
                 return NotFound($"Catalog not found: {catalogId}");
             }
-        }
-
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllCatalogs()
-        {
-            _logger.LogInformation("GetAllCatalogs called");
-
-            var catalogs = await _catalogService.GetAllCatalogs();
-
-            if (!catalogs.Any())
-            {
-                _logger.LogWarning("No catalogs found");
-                return NotFound("No catalogs found");
-            }
-
-            return Ok(catalogs);
         }
     }
 }
