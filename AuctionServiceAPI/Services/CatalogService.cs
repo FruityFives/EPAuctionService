@@ -23,6 +23,24 @@ public class CatalogService : ICatalogService
         _logger = logger;
     }
 
+    public async Task<List<Auction>> GetAllActiveAuctions()
+    {
+        _logger.LogInformation("Fetching all active auctions from all catalogs");
+
+        var catalogs = await _catalogRepository.GetAllCatalogs();
+        var allAuctions = new List<Auction>();
+
+        foreach (var catalog in catalogs)
+        {
+            var activeAuctions = await _auctionRepository.SendActiveAuctions(catalog.CatalogId, AuctionStatus.Active);
+            allAuctions.AddRange(activeAuctions);
+        }
+
+        _logger.LogInformation("Returning {Count} active auctions", allAuctions.Count);
+        return allAuctions;
+    }
+
+
     public async Task<Catalog> CreateCatalog(Catalog catalog)
     {
         catalog.CatalogId = Guid.NewGuid();
