@@ -4,6 +4,8 @@ using Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace AuctionServiceAPI.Controllers;
 
@@ -20,7 +22,7 @@ public class AuctionController : ControllerBase
         _logger = logger;
         _logger.LogInformation("AuctionController initialized");
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateAuction([FromBody] Auction auction)
     {
