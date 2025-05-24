@@ -16,7 +16,9 @@ public enum EffectDTOStatus
 {
     Available, // Effekt er tilgængelig for bud
     Sold, // Effekt er solgt
-    NotAvailable // Effekt er ikke længere tilgængelig for bud
+    NotAvailable, // Effekt er ikke længere tilgængelig for bud
+
+    InAuction // Effekt er i auktion
 }
 
 

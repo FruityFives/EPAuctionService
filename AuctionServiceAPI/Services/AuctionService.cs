@@ -1,4 +1,6 @@
 using AuctionServiceAPI.Repositories;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Models;
 using Microsoft.Extensions.Logging;
 
@@ -28,19 +30,87 @@ public class AuctionService : IAuctionService
         var createdAuction = await _auctionRepository.AddAuction(auction);
         _logger.LogInformation($"Auction created with ID: {createdAuction.AuctionId}");
 
-        var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId);
-        if (catalog != null)
+        // ✅ Tjek om CatalogId er sat, før du forsøger at hente kataloget
+        if (auction.CatalogId.HasValue)
         {
-            _logger.LogInformation($"Updating catalog with ID: {catalog.CatalogId} after auction creation.");
-            await _catalogRepository.UpdateCatalog(catalog);
+            var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId.Value);
+            if (catalog != null)
+            {
+                _logger.LogInformation($"Updating catalog with ID: {catalog.CatalogId} after auction creation.");
+                await _catalogRepository.UpdateCatalog(catalog);
+            }
+            else
+            {
+                _logger.LogWarning($"Catalog with ID: {auction.CatalogId} not found when creating auction.");
+            }
         }
         else
         {
-            _logger.LogWarning($"Catalog with ID: {auction.CatalogId} not found when creating auction.");
+            _logger.LogInformation("Auction created without a catalog assignment.");
         }
 
         return createdAuction;
     }
+
+
+
+    public async Task<List<Auction>> ImportEffectsFromStorageAsync()
+    {
+        using var httpClient = new HttpClient();
+        var url = "http://storage-service:5000/api/storage/effectsforauction";
+
+
+        var response = await httpClient.GetAsync(url);
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Could not fetch effects: {response.StatusCode}");
+
+        var content = await response.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+        var effects = JsonSerializer.Deserialize<List<EffectDTO>>(content, options);
+        if (effects == null || effects.Count == 0)
+            return new List<Auction>();
+
+        var createdAuctions = new List<Auction>();
+
+        foreach (var effect in effects)
+        {
+            effect.Status = EffectDTOStatus.InAuction;
+
+            //effect.EffectDTOStatus = EffectDTOStatus.InAuction;
+            var auction = new Auction
+            {
+                AuctionId = Guid.NewGuid(),
+                Name = effect.Title,
+                MinPrice = (double)effect.AssessmentPrice,
+                Status = AuctionStatus.Inactive,
+                CatalogId = null,
+                BidHistory = new List<BidDTO>(),
+                Effect = effect
+            };
+
+
+            await _auctionRepository.AddAuction(auction);
+            createdAuctions.Add(auction);
+        }
+
+        return createdAuctions;
+    }
+
+
+    public async Task<Auction?> AddAuctionToCatalog(Guid auctionId, Guid catalogId, double minPrice)
+    {
+        var auction = await _auctionRepository.GetAuctionById(auctionId);
+        if (auction == null) return null;
+
+        auction.CatalogId = catalogId;
+        auction.MinPrice = minPrice;
+        auction.Status = AuctionStatus.Active;
+
+        await _auctionRepository.SaveAuction(auction);
+        return auction;
+    }
+
 
     public Task<Auction> GetAuctionById(Guid id)
     {

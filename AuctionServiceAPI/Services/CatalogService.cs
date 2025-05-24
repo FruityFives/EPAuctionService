@@ -7,19 +7,20 @@ namespace AuctionServiceAPI.Services;
 public class CatalogService : ICatalogService
 {
     private readonly ICatalogRepository _catalogRepository;
+
+    private readonly IAuctionService _auctionService;
+
     private readonly IAuctionRepository _auctionRepository;
     private readonly IStoragePublisherRabbit _storagePublisher;
     private readonly ILogger<CatalogService> _logger;
 
     public CatalogService(
+        IAuctionService auctionService,
         ICatalogRepository catalogRepository,
-        IAuctionRepository auctionRepository,
-        IStoragePublisherRabbit storagePublisher,
         ILogger<CatalogService> logger)
     {
+        _auctionService = auctionService;
         _catalogRepository = catalogRepository;
-        _auctionRepository = auctionRepository;
-        _storagePublisher = storagePublisher;
         _logger = logger;
     }
 
@@ -39,6 +40,13 @@ public class CatalogService : ICatalogService
         _logger.LogInformation("Returning {Count} active auctions", allAuctions.Count);
         return allAuctions;
     }
+
+
+    public async Task<List<Auction>> ImportEffectsFromStorageAsync()
+    {
+        return await _auctionService.ImportEffectsFromStorageAsync();
+    }
+
 
 
     public async Task<Catalog> CreateCatalog(Catalog catalog)
@@ -119,7 +127,7 @@ public class CatalogService : ICatalogService
 
             var dto = new AuctionDTO
             {
-                EffectId = auction.EffectId.EffectId,
+                EffectId = auction.Effect.EffectId,
                 WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
                 FinalAmount = auction.CurrentBid?.Amount ?? 0,
                 IsSold = auction.CurrentBid != null
@@ -144,7 +152,7 @@ public class CatalogService : ICatalogService
         {
             var dto = new AuctionDTO
             {
-                EffectId = auction.EffectId.EffectId,
+                EffectId = auction.Effect.EffectId,
                 WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
                 FinalAmount = auction.CurrentBid?.Amount ?? 0,
                 IsSold = auction.CurrentBid != null

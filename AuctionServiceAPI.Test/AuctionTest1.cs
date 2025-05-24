@@ -27,7 +27,7 @@ namespace AuctionServiceAPI.Test
                     CatalogId = Guid.NewGuid(),
                     BidHistory = new List<BidDTO>(),
                     MinPrice = 1000,
-                    EffectId = new EffectDTO { EffectId = Guid.NewGuid() }
+                    Effect = new EffectDTO { EffectId = Guid.NewGuid() }
                 }
             };
 
@@ -64,7 +64,7 @@ namespace AuctionServiceAPI.Test
                 CatalogId = Guid.NewGuid(),
                 BidHistory = new List<BidDTO>(),
                 MinPrice = 2000,
-                EffectId = new EffectDTO { EffectId = Guid.NewGuid() }
+                Effect = new EffectDTO { EffectId = Guid.NewGuid() }
             };
 
             // Act
