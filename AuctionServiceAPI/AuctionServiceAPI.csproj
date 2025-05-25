@@ -10,8 +10,9 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>6.0.1</InformationalVersion>
+    <InformationalVersion>6.0.2</InformationalVersion>
     <Description>
+      6.0.2 Mongo Bson Added
       6.0.1 Integration with BidService completed (Foreal)
       6.0.0 Integration with BidService completed
       5.1.1 Controller debug 

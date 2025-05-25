@@ -1,10 +1,12 @@
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 
 namespace Models;
 
 public class Catalog
 {
     [BsonId]
+    [BsonRepresentation(BsonType.String)]
     public Guid CatalogId { get; set; }
     public string Name { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
