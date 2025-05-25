@@ -140,12 +140,14 @@ public class CatalogService : ICatalogService
             await _auctionRepository.SaveAuction(auction);
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
-            if (auction.Effect == null || auction.Effect.EffectId == Guid.Empty)
+            // 🛑 Beskyt mod null før du tilgår auction.Effect.EffectId
+            if (auction.Effect == null)
             {
-                _logger.LogWarning("Auction with ID {AuctionId} has no valid Effect. Skipping publish.", auction.AuctionId);
+                _logger.LogWarning("Auction with ID {AuctionId} has null Effect. Skipping publish.", auction.AuctionId);
                 continue;
             }
 
+            // ✅ Nu er vi sikre på auction.Effect ikke er null
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
@@ -159,6 +161,7 @@ public class CatalogService : ICatalogService
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
+
 
 
 
