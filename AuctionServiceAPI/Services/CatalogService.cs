@@ -123,10 +123,12 @@ public class CatalogService : ICatalogService
         var catalog = await _catalogRepository.GetCatalogById(catalogId)
                       ?? throw new Exception("Catalog not found");
 
-        var active = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
-        var closed = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
-        var auctions = active.Concat(closed).ToList();
-
+        var auctions = await _catalogRepository.GetAuctionsByCatalogId(catalogId);
+        if (auctions.Count == 0)
+        {
+            _logger.LogWarning("No auctions found for catalog ID: {CatalogId}", catalogId);
+            throw new Exception("No auctions found for this catalog");
+        }
         catalog.Status = CatalogStatus.Closed;
         await _catalogRepository.SaveCatalog(catalog);
         _logger.LogInformation("Catalog marked as closed: {CatalogId}", catalogId);
@@ -137,30 +139,11 @@ public class CatalogService : ICatalogService
             await _auctionRepository.SaveAuction(auction);
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
-            if (auction.Effect == null || auction.Effect.EffectId == Guid.Empty)
-            {
-                _logger.LogWarning("Auction with ID {AuctionId} has no valid Effect. Skipping publish.", auction.AuctionId);
-                continue;
-            }
-
-            Guid winnerId = Guid.Empty;
-            double finalAmount = 0;
-
-            if (auction.CurrentBid != null)
-            {
-                winnerId = auction.CurrentBid.UserId;
-                finalAmount = auction.CurrentBid.Amount;
-            }
-            else
-            {
-                _logger.LogInformation("Auction with ID {AuctionId} had no bids placed.", auction.AuctionId);
-            }
-
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
-                WinnerId = winnerId,
-                FinalAmount = finalAmount,
+                WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
+                FinalAmount = auction.CurrentBid?.Amount ?? 0,
                 IsSold = auction.CurrentBid != null
             };
 
@@ -169,7 +152,6 @@ public class CatalogService : ICatalogService
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
-
 
 
     public async Task HandleAuctionFinish(Guid catalogId)

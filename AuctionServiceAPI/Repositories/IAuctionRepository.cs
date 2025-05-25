@@ -7,6 +7,7 @@ namespace AuctionServiceAPI.Repositories;
 public interface IAuctionRepository
 {
     Task<Auction?> AddAuction(Auction auction);
+    Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId);
     Task<bool> RemoveAuction(Guid id);
     Task<Auction?> UpdateAuctionStatus(Guid id, AuctionStatus status);
     Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status);
