@@ -1,7 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 using Models;
 using Microsoft.Extensions.Logging;
@@ -32,30 +31,34 @@ namespace AuctionServiceAPI.Repositories
             logger.LogInformation($"Using collection {collectionAuction}");
             logger.LogInformation($"Using collection {collectionCatalog}");
 
-            // ✅ Global enum og Guid serialization som string
-            BsonSerializer.RegisterSerializationProvider(new EnumAsStringSerializationProvider());
+            // 👇 Disse linjer er afgørende for at enum bliver gemt som string
+            if (!BsonClassMap.IsClassMapRegistered(typeof(Catalog)))
+            {
+                BsonClassMap.RegisterClassMap<Catalog>(cm =>
+                {
+                    cm.AutoMap();
+                    cm.MapMember(c => c.Status)
+                      .SetSerializer(new EnumSerializer<CatalogStatus>(BsonType.String));
+                });
+            }
+
+            if (!BsonClassMap.IsClassMapRegistered(typeof(Auction)))
+            {
+                BsonClassMap.RegisterClassMap<Auction>(cm =>
+                {
+                    cm.AutoMap();
+                    cm.MapMember(c => c.Status)
+                      .SetSerializer(new EnumSerializer<AuctionStatus>(BsonType.String));
+                });
+            }
+
+            // Register Guid serializer as string
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 
             var client = new MongoClient(connectionString);
             Database = client.GetDatabase(dbName);
             AuctionCollection = Database.GetCollection<Auction>(collectionAuction);
             CatalogCollection = Database.GetCollection<Catalog>(collectionCatalog);
-        }
-    }
-
-    public class EnumAsStringSerializationProvider : IBsonSerializationProvider
-    {
-        public IBsonSerializer GetSerializer(Type type)
-        {
-            if (type.IsEnum)
-            {
-                return (IBsonSerializer)Activator.CreateInstance(
-                    typeof(EnumSerializer<>).MakeGenericType(type),
-                    BsonType.String
-                )!;
-            }
-
-            return null!;
         }
     }
 }
