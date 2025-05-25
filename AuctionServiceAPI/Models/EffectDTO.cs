@@ -1,8 +1,12 @@
 using System;
+using System.Text.Json.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Models;
+
 public class EffectDTO
 {
+    [JsonPropertyName("storageEffectId")]
     public Guid EffectId { get; set; }
     public string Title { get; set; } = string.Empty;
     public decimal AssessmentPrice { get; set; }

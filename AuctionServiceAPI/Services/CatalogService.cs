@@ -17,12 +17,15 @@ public class CatalogService : ICatalogService
     public CatalogService(
         IAuctionService auctionService,
         ICatalogRepository catalogRepository,
+        IAuctionRepository auctionRepository,
         ILogger<CatalogService> logger)
     {
         _auctionService = auctionService;
         _catalogRepository = catalogRepository;
+        _auctionRepository = auctionRepository;
         _logger = logger;
     }
+
 
     public async Task<List<Auction>> GetAllActiveAuctions()
     {
@@ -30,6 +33,15 @@ public class CatalogService : ICatalogService
 
         var catalogs = await _catalogRepository.GetAllCatalogs();
         var allAuctions = new List<Auction>();
+
+        _logger.LogInformation("Found {Count} catalogs", catalogs.Count);
+        foreach (var catalog in catalogs)
+        {
+            var activeAuctions = await _auctionRepository.SendActiveAuctions(catalog.CatalogId, AuctionStatus.Active);
+            _logger.LogInformation("Catalog {CatalogId} has {Count} active auctions", catalog.CatalogId, activeAuctions.Count);
+            allAuctions.AddRange(activeAuctions);
+        }
+
 
         foreach (var catalog in catalogs)
         {
@@ -134,7 +146,7 @@ public class CatalogService : ICatalogService
             };
 
             await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}", 
+            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
@@ -159,7 +171,7 @@ public class CatalogService : ICatalogService
             };
 
             await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}", 
+            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
 

@@ -22,9 +22,8 @@ services:
       - haav
     restart: always
 
-
   bidserviceapi:
-    image: fawad23/bid-service:3.0.1
+    image: fawad23/bid-service:3.0.5
     container_name: bid-service
     depends_on:
       - rabbitmq
@@ -58,7 +57,7 @@ services:
     restart: always
     networks:
       - haav
-    
+
   storage-service:
     image: fawad23/storage-service:2.2.3
     container_name: storage-service

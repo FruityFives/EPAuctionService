@@ -76,8 +76,6 @@ public class AuctionService : IAuctionService
         foreach (var effect in effects)
         {
             effect.Status = EffectDTOStatus.InAuction;
-
-            //effect.EffectDTOStatus = EffectDTOStatus.InAuction;
             var auction = new Auction
             {
                 AuctionId = Guid.NewGuid(),
