@@ -11,7 +11,8 @@ public class Catalog
     public string Name { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-
+    
+    [BsonRepresentation(BsonType.String)]
     public CatalogStatus Status { get; set; } = CatalogStatus.Active;
 }
 
