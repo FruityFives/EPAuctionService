@@ -15,14 +15,16 @@ public class CatalogService : ICatalogService
     private readonly ILogger<CatalogService> _logger;
 
     public CatalogService(
-        IAuctionService auctionService,
-        ICatalogRepository catalogRepository,
-        IAuctionRepository auctionRepository,
-        ILogger<CatalogService> logger)
+      IAuctionService auctionService,
+      ICatalogRepository catalogRepository,
+      IAuctionRepository auctionRepository,
+      IStoragePublisherRabbit storagePublisher, 
+      ILogger<CatalogService> logger)
     {
         _auctionService = auctionService;
         _catalogRepository = catalogRepository;
         _auctionRepository = auctionRepository;
+        _storagePublisher = storagePublisher; 
         _logger = logger;
     }
 
