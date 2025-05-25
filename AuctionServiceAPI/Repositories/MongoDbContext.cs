@@ -31,34 +31,16 @@ namespace AuctionServiceAPI.Repositories
             logger.LogInformation($"Using collection {collectionAuction}");
             logger.LogInformation($"Using collection {collectionCatalog}");
 
-            // 👇 Disse linjer er afgørende for at enum bliver gemt som string
-            if (!BsonClassMap.IsClassMapRegistered(typeof(Catalog)))
-            {
-                BsonClassMap.RegisterClassMap<Catalog>(cm =>
-                {
-                    cm.AutoMap();
-                    cm.MapMember(c => c.Status)
-                      .SetSerializer(new EnumSerializer<CatalogStatus>(BsonType.String));
-                });
-            }
-
-            if (!BsonClassMap.IsClassMapRegistered(typeof(Auction)))
-            {
-                BsonClassMap.RegisterClassMap<Auction>(cm =>
-                {
-                    cm.AutoMap();
-                    cm.MapMember(c => c.Status)
-                      .SetSerializer(new EnumSerializer<AuctionStatus>(BsonType.String));
-                });
-            }
-
-            // Register Guid serializer as string
+            // 🧠 VIGTIGT: Registrer enum-serializere
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
+            BsonSerializer.RegisterSerializer(new EnumSerializer<CatalogStatus>(BsonType.String));
+            BsonSerializer.RegisterSerializer(new EnumSerializer<AuctionStatus>(BsonType.String)); // hvis du bruger den andre steder
 
             var client = new MongoClient(connectionString);
             Database = client.GetDatabase(dbName);
             AuctionCollection = Database.GetCollection<Auction>(collectionAuction);
             CatalogCollection = Database.GetCollection<Catalog>(collectionCatalog);
         }
+
     }
 }
