@@ -139,6 +139,12 @@ public class CatalogService : ICatalogService
             await _auctionRepository.SaveAuction(auction);
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
+            if (auction.Effect == null || auction.Effect.EffectId == Guid.Empty)
+            {
+                _logger.LogWarning("Auction with ID {AuctionId} has no valid Effect. Skipping publish.", auction.AuctionId);
+                continue;
+            }
+
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
@@ -151,6 +157,7 @@ public class CatalogService : ICatalogService
             _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
+
     }
 
 
