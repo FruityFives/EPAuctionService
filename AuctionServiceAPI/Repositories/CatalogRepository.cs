@@ -114,7 +114,8 @@ public class CatalogRepository : ICatalogRepository
 
     public async Task SaveCatalog(Catalog catalog)
     {
-        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
+        var filter = Builders<Catalog>.Filter.Eq("_id", catalog.CatalogId);
+
         var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
 
         if (result.IsAcknowledged && result.ModifiedCount > 0)

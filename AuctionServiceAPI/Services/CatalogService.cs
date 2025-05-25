@@ -123,10 +123,12 @@ public class CatalogService : ICatalogService
         var catalog = await _catalogRepository.GetCatalogById(catalogId)
                       ?? throw new Exception("Catalog not found");
 
-        var active = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
-        var closed = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
-        var auctions = active.Concat(closed).ToList();
-
+        var auctions = await _catalogRepository.GetAuctionsByCatalogId(catalogId);
+        if (auctions.Count == 0)
+        {
+            _logger.LogWarning("No auctions found for catalog ID: {CatalogId}", catalogId);
+            throw new Exception("No auctions found for this catalog");
+        }
         catalog.Status = CatalogStatus.Closed;
         await _catalogRepository.SaveCatalog(catalog);
         _logger.LogInformation("Catalog marked as closed: {CatalogId}", catalogId);
@@ -150,6 +152,7 @@ public class CatalogService : ICatalogService
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
+
 
     public async Task HandleAuctionFinish(Guid catalogId)
     {
