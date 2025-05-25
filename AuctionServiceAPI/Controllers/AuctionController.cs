@@ -45,6 +45,17 @@ public class AuctionController : ControllerBase
         }
     }
 
+    [HttpPost("{auctionId}/assign-to-catalog")]
+    public async Task<IActionResult> AssignAuctionToCatalog(Guid auctionId, [FromQuery] Guid catalogId, [FromQuery] double minPrice)
+    {
+        var result = await _auctionService.AddAuctionToCatalog(auctionId, catalogId, minPrice);
+        if (result == null)
+            return NotFound($"Auction with ID {auctionId} not found");
+
+        return Ok(result);
+    }
+
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAuctionById(Guid id)
     {

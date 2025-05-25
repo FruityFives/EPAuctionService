@@ -51,6 +51,24 @@ namespace AuctionServiceAPI.Controllers
             return Ok(auctions);
         }
 
+
+        [HttpPost("import-effects-from-storage")]
+        public async Task<IActionResult> ImportEffectsFromStorage()
+        {
+            _logger.LogInformation("ImportEffectsFromStorage called");
+            try
+            {
+                var auctions = await _catalogService.ImportEffectsFromStorageAsync();
+                return Ok(auctions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Import failed");
+                return StatusCode(500, "Error importing effects from storage");
+            }
+        }
+
+
         [HttpGet("version")]
         public async Task<Dictionary<string, string>> GetVersion()
         {
