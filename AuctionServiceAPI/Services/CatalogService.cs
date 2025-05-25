@@ -129,6 +129,7 @@ public class CatalogService : ICatalogService
             _logger.LogWarning("No auctions found for catalog ID: {CatalogId}", catalogId);
             throw new Exception("No auctions found for this catalog");
         }
+
         catalog.Status = CatalogStatus.Closed;
         await _catalogRepository.SaveCatalog(catalog);
         _logger.LogInformation("Catalog marked as closed: {CatalogId}", catalogId);
@@ -157,8 +158,8 @@ public class CatalogService : ICatalogService
             _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
-
     }
+
 
 
     public async Task HandleAuctionFinish(Guid catalogId)
