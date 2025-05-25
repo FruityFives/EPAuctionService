@@ -7,21 +7,25 @@ namespace AuctionServiceAPI.Services;
 public class CatalogService : ICatalogService
 {
     private readonly ICatalogRepository _catalogRepository;
+
+    private readonly IAuctionService _auctionService;
+
     private readonly IAuctionRepository _auctionRepository;
     private readonly IStoragePublisherRabbit _storagePublisher;
     private readonly ILogger<CatalogService> _logger;
 
     public CatalogService(
+        IAuctionService auctionService,
         ICatalogRepository catalogRepository,
         IAuctionRepository auctionRepository,
-        IStoragePublisherRabbit storagePublisher,
         ILogger<CatalogService> logger)
     {
+        _auctionService = auctionService;
         _catalogRepository = catalogRepository;
         _auctionRepository = auctionRepository;
-        _storagePublisher = storagePublisher;
         _logger = logger;
     }
+
 
     public async Task<List<Auction>> GetAllActiveAuctions()
     {
@@ -29,6 +33,15 @@ public class CatalogService : ICatalogService
 
         var catalogs = await _catalogRepository.GetAllCatalogs();
         var allAuctions = new List<Auction>();
+
+        _logger.LogInformation("Found {Count} catalogs", catalogs.Count);
+        foreach (var catalog in catalogs)
+        {
+            var activeAuctions = await _auctionRepository.SendActiveAuctions(catalog.CatalogId, AuctionStatus.Active);
+            _logger.LogInformation("Catalog {CatalogId} has {Count} active auctions", catalog.CatalogId, activeAuctions.Count);
+            allAuctions.AddRange(activeAuctions);
+        }
+
 
         foreach (var catalog in catalogs)
         {
@@ -39,6 +52,13 @@ public class CatalogService : ICatalogService
         _logger.LogInformation("Returning {Count} active auctions", allAuctions.Count);
         return allAuctions;
     }
+
+
+    public async Task<List<Auction>> ImportEffectsFromStorageAsync()
+    {
+        return await _auctionService.ImportEffectsFromStorageAsync();
+    }
+
 
 
     public async Task<Catalog> CreateCatalog(Catalog catalog)
@@ -119,14 +139,14 @@ public class CatalogService : ICatalogService
 
             var dto = new AuctionDTO
             {
-                EffectId = auction.EffectId.EffectId,
+                EffectId = auction.Effect.EffectId,
                 WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
                 FinalAmount = auction.CurrentBid?.Amount ?? 0,
                 IsSold = auction.CurrentBid != null
             };
 
             await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}", 
+            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
@@ -144,14 +164,14 @@ public class CatalogService : ICatalogService
         {
             var dto = new AuctionDTO
             {
-                EffectId = auction.EffectId.EffectId,
+                EffectId = auction.Effect.EffectId,
                 WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
                 FinalAmount = auction.CurrentBid?.Amount ?? 0,
                 IsSold = auction.CurrentBid != null
             };
 
             await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}", 
+            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
 

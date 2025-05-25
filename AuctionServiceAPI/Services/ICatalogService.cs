@@ -8,6 +8,10 @@ public interface ICatalogService
 
     Task<List<Auction>> GetAllActiveAuctions();
 
+    Task<List<Auction>> ImportEffectsFromStorageAsync();
+
+
+
     Task<bool> DeleteCatalog(Guid id);
     Task<Catalog> GetCatalogById(Guid id);
     Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId);

@@ -1,8 +1,12 @@
 using System;
+using System.Text.Json.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Models;
+
 public class EffectDTO
 {
+    [JsonPropertyName("storageEffectId")]
     public Guid EffectId { get; set; }
     public string Title { get; set; } = string.Empty;
     public decimal AssessmentPrice { get; set; }
@@ -16,7 +20,9 @@ public enum EffectDTOStatus
 {
     Available, // Effekt er tilgængelig for bud
     Sold, // Effekt er solgt
-    NotAvailable // Effekt er ikke længere tilgængelig for bud
+    NotAvailable, // Effekt er ikke længere tilgængelig for bud
+
+    InAuction // Effekt er i auktion
 }
 
 
