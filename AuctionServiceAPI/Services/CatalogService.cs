@@ -139,7 +139,7 @@ public class CatalogService : ICatalogService
 
             if (auction.Effect == null)
             {
-                _logger.LogWarning("Auction {AuctionId} has no Effect assigned. Skipping publish.", auction.AuctionId);
+                _logger.LogWarning("Auction with ID {AuctionId} has no Effect. Skipping publish.", auction.AuctionId);
                 continue;
             }
 
