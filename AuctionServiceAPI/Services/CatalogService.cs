@@ -143,11 +143,24 @@ public class CatalogService : ICatalogService
                 continue;
             }
 
+            Guid winnerId = Guid.Empty;
+            double finalAmount = 0;
+
+            if (auction.CurrentBid != null)
+            {
+                winnerId = auction.CurrentBid.UserId;
+                finalAmount = auction.CurrentBid.Amount;
+            }
+            else
+            {
+                _logger.LogInformation("Auction with ID {AuctionId} had no bids placed.", auction.AuctionId);
+            }
+
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
-                WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
-                FinalAmount = auction.CurrentBid?.Amount ?? 0,
+                WinnerId = winnerId,
+                FinalAmount = finalAmount,
                 IsSold = auction.CurrentBid != null
             };
 
@@ -156,6 +169,7 @@ public class CatalogService : ICatalogService
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
+
 
 
     public async Task HandleAuctionFinish(Guid catalogId)
