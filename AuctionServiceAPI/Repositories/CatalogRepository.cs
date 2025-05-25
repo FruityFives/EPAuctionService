@@ -32,28 +32,6 @@ public class CatalogRepository : ICatalogRepository
         return catalog; //s
     }
 
-    public List<Catalog> SeedDataCatalog()
-    {
-        ListOfCatalogs.Add(new Catalog
-        {
-            CatalogId = Guid.Parse("d1f8c03f-8405-4d0e-b86b-6ad94ea4a3a7"),
-            Name = "Catalog 1",
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(7),
-            Status = CatalogStatus.Active
-        });
-
-        ListOfCatalogs.Add(new Catalog
-        {
-            CatalogId = Guid.Parse("e68e3d5f-1a12-4c0e-99e4-92793f3040d6"),
-            Name = "Catalog 2",
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(14),
-            Status = CatalogStatus.Closed
-        });
-
-        return ListOfCatalogs;
-    }
 
     public async Task<bool> RemoveCatalog(Guid id)
     {
@@ -114,7 +92,7 @@ public class CatalogRepository : ICatalogRepository
 
     public async Task SaveCatalog(Catalog catalog)
     {
-        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
+        var filter = Builders<Catalog>.Filter.Eq("_id", catalog.CatalogId);
         var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
 
         if (result.IsAcknowledged && result.ModifiedCount > 0)
