@@ -73,6 +73,14 @@ public class AuctionRepository : IAuctionRepository
         return true;
     }
 
+    public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
+    {
+        _logger.LogInformation($"Fetching auctions for Catalog ID: {catalogId}");
+        var auctions = await _auctionCollection.Find(a => a.CatalogId == catalogId).ToListAsync();
+        _logger.LogInformation($"Found {auctions.Count} auctions for Catalog ID: {catalogId}");
+        return auctions;
+    }
+
     public async Task<Auction?> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
         _logger.LogInformation($"Updating auction status. AuctionId: {id}, NewStatus: {status}");
