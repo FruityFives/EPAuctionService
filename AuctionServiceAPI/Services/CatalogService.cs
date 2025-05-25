@@ -137,6 +137,12 @@ public class CatalogService : ICatalogService
             await _auctionRepository.SaveAuction(auction);
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
+            if (auction.Effect == null)
+            {
+                _logger.LogWarning("Auction {AuctionId} has no Effect assigned. Skipping publish.", auction.AuctionId);
+                continue;
+            }
+
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
@@ -150,6 +156,7 @@ public class CatalogService : ICatalogService
                 dto.EffectId, dto.IsSold, dto.FinalAmount);
         }
     }
+
 
     public async Task HandleAuctionFinish(Guid catalogId)
     {
