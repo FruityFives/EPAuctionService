@@ -10,7 +10,7 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>6.0.7</InformationalVersion>
+    <InformationalVersion>6.0.8</InformationalVersion>
     <Description>
       6.0.8 updated placebid function
       6.0.7 Worker updated to retry on failure
