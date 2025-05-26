@@ -30,7 +30,6 @@ try
     builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
     builder.Services.AddSingleton<IAuctionService, AuctionService>();
     builder.Services.AddSingleton<IAuctionPublisherRabbit, AuctionPublisherRabbit>();
-    builder.Services.AddSingleton<IAuctionSyncPublisher, AuctionSyncPublisherRabbit>();
 
     builder.Services.AddSingleton<ICatalogService, CatalogService>();
     builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();

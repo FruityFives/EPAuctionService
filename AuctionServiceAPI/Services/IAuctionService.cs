@@ -4,7 +4,6 @@ namespace AuctionServiceAPI.Services;
 
 public interface IAuctionService
 {
-    Task<Auction> CreateAuction(Auction auction);
     Task<Auction?> AddAuctionToCatalog(Guid auctionId, Guid catalogId, double minPrice);
 
     Task<List<Auction>> ImportEffectsFromStorageAsync();

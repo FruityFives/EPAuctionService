@@ -21,30 +21,6 @@ public class AuctionController : ControllerBase
         _logger.LogInformation("AuctionController initialized");
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateAuction([FromBody] Auction auction)
-    {
-        _logger.LogInformation("CreateAuction called with Auction: {@Auction}", auction);
-
-        if (auction == null)
-        {
-            _logger.LogWarning("CreateAuction received null Auction");
-            return BadRequest("Auction cannot be null");
-        }
-
-        try
-        {
-            var result = await _auctionService.CreateAuction(auction);
-            _logger.LogInformation("Auction created with ID: {AuctionId}", result.AuctionId);
-            return CreatedAtAction(nameof(GetAuctionById), new { id = result.AuctionId }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while creating auction");
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
     [HttpPost("{auctionId}/assign-to-catalog")]
     public async Task<IActionResult> AssignAuctionToCatalog(Guid auctionId, [FromQuery] Guid catalogId, [FromQuery] double minPrice)
     {

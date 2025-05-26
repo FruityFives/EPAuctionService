@@ -28,34 +28,7 @@ public class AuctionService : IAuctionService
         _logger = logger;
     }
 
-    public async Task<Auction> CreateAuction(Auction auction)
-    {
-        auction.AuctionId = Guid.NewGuid();
-        auction.Status = AuctionStatus.Active;
-
-        var createdAuction = await _auctionRepository.AddAuction(auction);
-        _logger.LogInformation($"Auction created with ID: {createdAuction.AuctionId}");
-
-        if (auction.CatalogId.HasValue)
-        {
-            var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId.Value);
-            if (catalog != null)
-            {
-                _logger.LogInformation($"Updating catalog with ID: {catalog.CatalogId} after auction creation.");
-                await _catalogRepository.UpdateCatalog(catalog);
-            }
-            else
-            {
-                _logger.LogWarning($"Catalog with ID: {auction.CatalogId} not found when creating auction.");
-            }
-        }
-        else
-        {
-            _logger.LogInformation("Auction created without a catalog assignment.");
-        }
-
-        return createdAuction;
-    }
+ 
 
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
