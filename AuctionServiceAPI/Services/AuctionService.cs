@@ -11,14 +11,14 @@ public class AuctionService : IAuctionService
     private readonly IAuctionRepository _auctionRepository;
     private readonly ICatalogRepository _catalogRepository;
     private readonly IAuctionPublisherRabbit _publisher;
-    private readonly IAuctionSyncPublisher _syncPublisher;
+    private readonly IAuctionPublisherRabbit _syncPublisher;
     private readonly ILogger<AuctionService> _logger;
 
     public AuctionService(
         IAuctionRepository auctionRepository,
         ICatalogRepository catalogRepository,
         IAuctionPublisherRabbit publisher,
-        IAuctionSyncPublisher syncPublisher,
+        IAuctionPublisherRabbit syncPublisher,
         ILogger<AuctionService> logger)
     {
         _auctionRepository = auctionRepository;

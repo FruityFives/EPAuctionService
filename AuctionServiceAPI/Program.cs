@@ -29,11 +29,13 @@ try
     builder.Services.AddSingleton<MongoDbContext>();
     builder.Services.AddSingleton<ICatalogRepository, CatalogRepository>();
     builder.Services.AddSingleton<IAuctionService, AuctionService>();
+    builder.Services.AddSingleton<ICatalogService, CatalogService>();
+
+    builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
     builder.Services.AddSingleton<IAuctionPublisherRabbit, AuctionPublisherRabbit>();
 
-    builder.Services.AddSingleton<ICatalogService, CatalogService>();
-    builder.Services.AddSingleton<IStoragePublisherRabbit, StoragePublisherRabbit>();
     builder.Services.AddHostedService<Worker>();
+
 
     var app = builder.Build();
 

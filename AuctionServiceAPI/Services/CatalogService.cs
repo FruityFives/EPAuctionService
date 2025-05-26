@@ -12,7 +12,7 @@ public class CatalogService : ICatalogService
     private readonly IStoragePublisherRabbit _storagePublisher;
     private readonly ILogger<CatalogService> _logger;
 
-    private readonly IAuctionSyncPublisher _syncPublisher;
+    private readonly IAuctionPublisherRabbit _syncPublisher;
 
 
     public CatalogService(
@@ -20,7 +20,7 @@ public class CatalogService : ICatalogService
     ICatalogRepository catalogRepository,
     IAuctionRepository auctionRepository,
     IStoragePublisherRabbit storagePublisher,
-    IAuctionSyncPublisher syncPublisher, // 👈 Tilføj
+    IAuctionPublisherRabbit syncPublisher, // 👈 Tilføj
     ILogger<CatalogService> logger)
     {
         _auctionService = auctionService;
