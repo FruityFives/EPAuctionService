@@ -85,7 +85,7 @@ public class AuctionService : IAuctionService
         await _auctionRepository.SaveAuction(auction);
 
         // 🔁 Synkroniser med BidService
-        var syncDto = new AuctionSyncDTO
+        var syncDto = new AuctionDTO
         {
             AuctionId = auction.AuctionId,
             Status = auction.Status,

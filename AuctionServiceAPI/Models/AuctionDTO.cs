@@ -1,6 +1,6 @@
 namespace Models;
 
-public class AuctionSyncDTO
+public class AuctionDTO
 {
     public Guid AuctionId { get; set; }
     public AuctionStatus Status { get; set; }

@@ -14,7 +14,7 @@ public class AuctionPublisherRabbit : IAuctionPublisherRabbit
         _logger = logger;
     }
 
-    public async Task PublishAuctionAsync(AuctionSyncDTO auction)
+    public async Task PublishAuctionAsync(AuctionDTO auction)
     {
         var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
         var factory = new ConnectionFactory { HostName = host };

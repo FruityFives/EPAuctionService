@@ -4,5 +4,5 @@ namespace AuctionServiceAPI.Services;
 
 public interface IAuctionSyncPublisher
 {
-    Task PublishAuctionAsync(AuctionSyncDTO auction);
+    Task PublishAuctionAsync(AuctionDTO auction);
 }

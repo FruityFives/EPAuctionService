@@ -134,7 +134,7 @@ public class CatalogService : ICatalogService
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
             // 🔄 Sync til BidService
-            var syncDto = new AuctionSyncDTO
+            var syncDto = new AuctionDTO
             {
                 AuctionId = auction.AuctionId,
                 Status = auction.Status,

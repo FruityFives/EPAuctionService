@@ -4,6 +4,6 @@ namespace AuctionServiceAPI.Services
 {
     public interface IAuctionPublisherRabbit
     {
-        Task PublishAuctionAsync(AuctionSyncDTO auction);
+        Task PublishAuctionAsync(AuctionDTO auction);
     }
 }
