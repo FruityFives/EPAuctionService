@@ -10,8 +10,9 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>6.0.8</InformationalVersion>
+    <InformationalVersion>6.0.9</InformationalVersion>
     <Description>
+      6.0.9 Rabbit queue added for bid
       6.0.8 updated placebid function
       6.0.7 Worker updated to retry on failure
       6.0.6 Small errors fixed

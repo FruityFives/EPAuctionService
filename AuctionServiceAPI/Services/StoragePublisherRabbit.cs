@@ -13,7 +13,7 @@ public class StoragePublisherRabbit : IStoragePublisherRabbit
         _logger.LogInformation("StoragePublisherRabbit initialized");
     }
 
-    public async Task PublishAuctionAsync(AuctionDTO auction)
+    public async Task PublishAuctionAsync(AuctionEffectDTO auction)
     {
         var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
         _logger.LogInformation("Attempting to publish auction with EffectId {effectId} to RabbitMQ at host {host}", auction.EffectId, host);

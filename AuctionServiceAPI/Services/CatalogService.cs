@@ -12,19 +12,25 @@ public class CatalogService : ICatalogService
     private readonly IStoragePublisherRabbit _storagePublisher;
     private readonly ILogger<CatalogService> _logger;
 
+    private readonly IAuctionSyncPublisher _syncPublisher;
+
+
     public CatalogService(
-      IAuctionService auctionService,
-      ICatalogRepository catalogRepository,
-      IAuctionRepository auctionRepository,
-      IStoragePublisherRabbit storagePublisher,
-      ILogger<CatalogService> logger)
+    IAuctionService auctionService,
+    ICatalogRepository catalogRepository,
+    IAuctionRepository auctionRepository,
+    IStoragePublisherRabbit storagePublisher,
+    IAuctionSyncPublisher syncPublisher, // 👈 Tilføj
+    ILogger<CatalogService> logger)
     {
         _auctionService = auctionService;
         _catalogRepository = catalogRepository;
         _auctionRepository = auctionRepository;
         _storagePublisher = storagePublisher;
+        _syncPublisher = syncPublisher; // 👈 Tilføj
         _logger = logger;
     }
+
 
     public async Task<List<Auction>> GetAllActiveAuctions()
     {
@@ -127,13 +133,27 @@ public class CatalogService : ICatalogService
             await _auctionRepository.SaveAuction(auction);
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
+            // 🔄 Sync til BidService
+            var syncDto = new AuctionSyncDTO
+            {
+                AuctionId = auction.AuctionId,
+                Status = auction.Status,
+                MinBid = Convert.ToDecimal(auction.MinPrice),
+                CurrentBid = Convert.ToDecimal(auction.CurrentBid?.Amount ?? 0),
+                EndDate = catalog.EndDate
+            };
+
+            await _syncPublisher.PublishAuctionAsync(syncDto);
+            _logger.LogInformation("🔄 Synced auction {AuctionId} update to BidService.", auction.AuctionId);
+
+            // 📦 Send til StorageService
             if (auction.Effect == null)
             {
-                _logger.LogWarning("Auction with ID {AuctionId} has null Effect. Skipping publish.", auction.AuctionId);
+                _logger.LogWarning("Auction with ID {AuctionId} has null Effect. Skipping publish to storage.", auction.AuctionId);
                 continue;
             }
 
-            var dto = new AuctionDTO
+            var storageDto = new AuctionEffectDTO
             {
                 EffectId = auction.Effect.EffectId,
                 WinnerUserId = auction.CurrentBid?.UserId,
@@ -141,10 +161,12 @@ public class CatalogService : ICatalogService
                 IsSold = auction.CurrentBid != null
             };
 
-            await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Price: {FinalPrice}",
-                dto.EffectId, dto.IsSold, dto.FinalPrice);
+            await _storagePublisher.PublishAuctionAsync(storageDto);
+            _logger.LogInformation("Published auction result to StorageService. Effect ID: {EffectId}, Sold: {IsSold}, Final Price: {FinalPrice}",
+                storageDto.EffectId, storageDto.IsSold, storageDto.FinalPrice);
         }
+    
+
     }
 
     public async Task HandleAuctionFinish(Guid catalogId)
@@ -158,7 +180,7 @@ public class CatalogService : ICatalogService
 
         foreach (var auction in auctions)
         {
-            var dto = new AuctionDTO
+            var dto = new AuctionEffectDTO
             {
                 EffectId = auction.Effect.EffectId,
                 WinnerUserId = auction.CurrentBid?.UserId,

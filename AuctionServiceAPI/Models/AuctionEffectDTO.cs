@@ -1,6 +1,6 @@
 namespace Models;
 
-public class AuctionDTO
+public class AuctionEffectDTO
 {
     public Guid EffectId { get; set; }
     public bool IsSold { get; set; }

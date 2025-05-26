@@ -10,15 +10,21 @@ public class AuctionService : IAuctionService
 {
     private readonly IAuctionRepository _auctionRepository;
     private readonly ICatalogRepository _catalogRepository;
+    private readonly IAuctionPublisherRabbit _publisher;
+    private readonly IAuctionSyncPublisher _syncPublisher;
     private readonly ILogger<AuctionService> _logger;
 
     public AuctionService(
         IAuctionRepository auctionRepository,
         ICatalogRepository catalogRepository,
+        IAuctionPublisherRabbit publisher,
+        IAuctionSyncPublisher syncPublisher,
         ILogger<AuctionService> logger)
     {
         _auctionRepository = auctionRepository;
         _catalogRepository = catalogRepository;
+        _publisher = publisher;
+        _syncPublisher = syncPublisher;
         _logger = logger;
     }
 
@@ -30,7 +36,6 @@ public class AuctionService : IAuctionService
         var createdAuction = await _auctionRepository.AddAuction(auction);
         _logger.LogInformation($"Auction created with ID: {createdAuction.AuctionId}");
 
-        // ✅ Tjek om CatalogId er sat, før du forsøger at hente kataloget
         if (auction.CatalogId.HasValue)
         {
             var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId.Value);
@@ -52,13 +57,10 @@ public class AuctionService : IAuctionService
         return createdAuction;
     }
 
-
-
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
         using var httpClient = new HttpClient();
         var url = "http://storage-service:5000/api/storage/effectsforauction";
-
 
         var response = await httpClient.GetAsync(url);
         if (!response.IsSuccessStatusCode)
@@ -87,14 +89,12 @@ public class AuctionService : IAuctionService
                 Effect = effect,
             };
 
-
             await _auctionRepository.AddAuction(auction);
             createdAuctions.Add(auction);
         }
 
         return createdAuctions;
     }
-
 
     public async Task<Auction?> AddAuctionToCatalog(Guid auctionId, Guid catalogId, double minPrice)
     {
@@ -107,14 +107,25 @@ public class AuctionService : IAuctionService
         auction.CatalogId = catalogId;
         auction.MinPrice = minPrice;
         auction.Status = AuctionStatus.Active;
-        auction.EndDate = catalog.EndDate; // 👈 tilføj katalogets slutdato
+        auction.EndDate = catalog.EndDate; // 👈 nedarv katalogets slutdato
 
         await _auctionRepository.SaveAuction(auction);
+
+        // 🔁 Synkroniser med BidService
+        var syncDto = new AuctionSyncDTO
+        {
+            AuctionId = auction.AuctionId,
+            Status = auction.Status,
+            MinBid = Convert.ToDecimal(auction.MinPrice),
+            CurrentBid = Convert.ToDecimal(auction.CurrentBid?.Amount ?? 0),
+            EndDate = auction.EndDate
+        };
+
+        await _syncPublisher.PublishAuctionAsync(syncDto);
+        _logger.LogInformation("Auction {AuctionId} synced to BidService", auction.AuctionId);
+
         return auction;
     }
-
-
-
 
     public Task<Auction> GetAuctionById(Guid id)
     {
@@ -159,10 +170,9 @@ public class AuctionService : IAuctionService
             throw new Exception("Auction is not active");
         }
 
-        // ✅ TJEK: Er auktionen udløbet ift. katalogets slutdato?
         if (auction.EndDate < DateTime.UtcNow)
         {
-            _logger.LogWarning($"Cannot place bid. Auction with ID: {bid.AuctionId} is expired. EndDate: {auction.EndDate}");
+            _logger.LogWarning($"Cannot place bid. Auction with ID: {bid.AuctionId} has ended.");
             throw new Exception("Auction has ended");
         }
 
@@ -174,5 +184,4 @@ public class AuctionService : IAuctionService
         _logger.LogInformation($"Bid for Auction ID: {bid.AuctionId} created successfully.");
         return auction;
     }
-
 }
