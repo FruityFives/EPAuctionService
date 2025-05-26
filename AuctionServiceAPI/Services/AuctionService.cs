@@ -84,7 +84,7 @@ public class AuctionService : IAuctionService
                 Status = AuctionStatus.Inactive,
                 CatalogId = null,
                 BidHistory = new List<BidDTO>(),
-                Effect = effect
+                Effect = effect,
             };
 
 

@@ -7,25 +7,24 @@ namespace AuctionServiceAPI.Services;
 public class CatalogService : ICatalogService
 {
     private readonly ICatalogRepository _catalogRepository;
-
     private readonly IAuctionService _auctionService;
-
     private readonly IAuctionRepository _auctionRepository;
     private readonly IStoragePublisherRabbit _storagePublisher;
     private readonly ILogger<CatalogService> _logger;
 
     public CatalogService(
-        IAuctionService auctionService,
-        ICatalogRepository catalogRepository,
-        IAuctionRepository auctionRepository,
-        ILogger<CatalogService> logger)
+      IAuctionService auctionService,
+      ICatalogRepository catalogRepository,
+      IAuctionRepository auctionRepository,
+      IStoragePublisherRabbit storagePublisher,
+      ILogger<CatalogService> logger)
     {
         _auctionService = auctionService;
         _catalogRepository = catalogRepository;
         _auctionRepository = auctionRepository;
+        _storagePublisher = storagePublisher;
         _logger = logger;
     }
-
 
     public async Task<List<Auction>> GetAllActiveAuctions()
     {
@@ -42,24 +41,13 @@ public class CatalogService : ICatalogService
             allAuctions.AddRange(activeAuctions);
         }
 
-
-        foreach (var catalog in catalogs)
-        {
-            var activeAuctions = await _auctionRepository.SendActiveAuctions(catalog.CatalogId, AuctionStatus.Active);
-            allAuctions.AddRange(activeAuctions);
-        }
-
-        _logger.LogInformation("Returning {Count} active auctions", allAuctions.Count);
         return allAuctions;
     }
-
 
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
         return await _auctionService.ImportEffectsFromStorageAsync();
     }
-
-
 
     public async Task<Catalog> CreateCatalog(Catalog catalog)
     {
@@ -89,7 +77,6 @@ public class CatalogService : ICatalogService
         var active = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Active);
         var closed = await _auctionRepository.SendActiveAuctions(catalogId, AuctionStatus.Closed);
 
-        _logger.LogInformation("Found {ActiveCount} active and {ClosedCount} closed auctions for catalog ID: {CatalogId}", active.Count, closed.Count, catalogId);
         return active.Concat(closed).ToList();
     }
 
@@ -129,6 +116,7 @@ public class CatalogService : ICatalogService
             _logger.LogWarning("No auctions found for catalog ID: {CatalogId}", catalogId);
             throw new Exception("No auctions found for this catalog");
         }
+
         catalog.Status = CatalogStatus.Closed;
         await _catalogRepository.SaveCatalog(catalog);
         _logger.LogInformation("Catalog marked as closed: {CatalogId}", catalogId);
@@ -139,20 +127,25 @@ public class CatalogService : ICatalogService
             await _auctionRepository.SaveAuction(auction);
             _logger.LogInformation("Closed auction with ID: {AuctionId}", auction.AuctionId);
 
+            if (auction.Effect == null)
+            {
+                _logger.LogWarning("Auction with ID {AuctionId} has null Effect. Skipping publish.", auction.AuctionId);
+                continue;
+            }
+
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
-                WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
-                FinalAmount = auction.CurrentBid?.Amount ?? 0,
+                WinnerUserId = auction.CurrentBid?.UserId,
+                FinalPrice = (decimal?)auction.CurrentBid?.Amount,
                 IsSold = auction.CurrentBid != null
             };
 
             await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
-                dto.EffectId, dto.IsSold, dto.FinalAmount);
+            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Price: {FinalPrice}",
+                dto.EffectId, dto.IsSold, dto.FinalPrice);
         }
     }
-
 
     public async Task HandleAuctionFinish(Guid catalogId)
     {
@@ -168,14 +161,14 @@ public class CatalogService : ICatalogService
             var dto = new AuctionDTO
             {
                 EffectId = auction.Effect.EffectId,
-                WinnerId = auction.CurrentBid?.UserId ?? Guid.Empty,
-                FinalAmount = auction.CurrentBid?.Amount ?? 0,
+                WinnerUserId = auction.CurrentBid?.UserId,
+                FinalPrice = (decimal?)auction.CurrentBid?.Amount,
                 IsSold = auction.CurrentBid != null
             };
 
             await _storagePublisher.PublishAuctionAsync(dto);
-            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Amount: {FinalAmount}",
-                dto.EffectId, dto.IsSold, dto.FinalAmount);
+            _logger.LogInformation("Published auction result for Effect ID: {EffectId}, Sold: {IsSold}, Final Price: {FinalPrice}",
+                dto.EffectId, dto.IsSold, dto.FinalPrice);
         }
 
         catalog.Status = CatalogStatus.Closed;

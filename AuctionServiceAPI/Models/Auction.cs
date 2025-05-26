@@ -1,11 +1,13 @@
 using Models;
 using MongoDB.Bson.Serialization.Attributes;
 namespace Models;
+using MongoDB.Bson;
 
 public class Auction
 {
     [BsonId]
     public Guid AuctionId { get; set; }
+    [BsonRepresentation(BsonType.String)]
     public AuctionStatus Status { get; set; }
     public string Name { get; set; } = string.Empty;
     public Guid? CatalogId { get; set; }  // FK

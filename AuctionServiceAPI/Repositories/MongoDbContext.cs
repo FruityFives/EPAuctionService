@@ -14,11 +14,11 @@ namespace AuctionServiceAPI.Repositories
         IMongoCollection<Catalog> CatalogCollection { get; }
     }
 
-    public class MongoDbContext
+    public class MongoDbContext : IMongoDbContext
     {
         public IMongoDatabase Database { get; }
-        public virtual IMongoCollection<Auction> AuctionCollection { get; }
-        public virtual IMongoCollection<Catalog> CatalogCollection { get; }
+        public IMongoCollection<Auction> AuctionCollection { get; }
+        public IMongoCollection<Catalog> CatalogCollection { get; }
 
         public MongoDbContext(ILogger<MongoDbContext> logger, IConfiguration config)
         {
@@ -31,12 +31,16 @@ namespace AuctionServiceAPI.Repositories
             logger.LogInformation($"Using collection {collectionAuction}");
             logger.LogInformation($"Using collection {collectionCatalog}");
 
+            // 🧠 VIGTIGT: Registrer enum-serializere
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
+            BsonSerializer.RegisterSerializer(new EnumSerializer<CatalogStatus>(BsonType.String));
+            BsonSerializer.RegisterSerializer(new EnumSerializer<AuctionStatus>(BsonType.String)); // hvis du bruger den andre steder
 
             var client = new MongoClient(connectionString);
             Database = client.GetDatabase(dbName);
             AuctionCollection = Database.GetCollection<Auction>(collectionAuction);
             CatalogCollection = Database.GetCollection<Catalog>(collectionCatalog);
         }
+
     }
 }

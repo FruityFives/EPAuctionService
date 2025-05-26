@@ -114,8 +114,7 @@ public class CatalogRepository : ICatalogRepository
 
     public async Task SaveCatalog(Catalog catalog)
     {
-        var filter = Builders<Catalog>.Filter.Eq("_id", catalog.CatalogId);
-
+        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId); // ✅
         var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
 
         if (result.IsAcknowledged && result.ModifiedCount > 0)
@@ -127,4 +126,5 @@ public class CatalogRepository : ICatalogRepository
             _logger.LogWarning($"Failed to save catalog with ID: {catalog.CatalogId}. It may not exist.");
         }
     }
+
 }
