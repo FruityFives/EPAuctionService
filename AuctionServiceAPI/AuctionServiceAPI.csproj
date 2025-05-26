@@ -12,6 +12,7 @@
     <FileVersion>1.0.1.1</FileVersion>
     <InformationalVersion>6.0.7</InformationalVersion>
     <Description>
+      6.0.8 updated placebid function
       6.0.7 Worker updated to retry on failure
       6.0.6 Small errors fixed
       6.0.5 Ipublisher added to catalog method

@@ -101,13 +101,19 @@ public class AuctionService : IAuctionService
         var auction = await _auctionRepository.GetAuctionById(auctionId);
         if (auction == null) return null;
 
+        var catalog = await _catalogRepository.GetCatalogById(catalogId);
+        if (catalog == null) return null;
+
         auction.CatalogId = catalogId;
         auction.MinPrice = minPrice;
         auction.Status = AuctionStatus.Active;
+        auction.EndDate = catalog.EndDate; // 👈 tilføj katalogets slutdato
 
         await _auctionRepository.SaveAuction(auction);
         return auction;
     }
+
+
 
 
     public Task<Auction> GetAuctionById(Guid id)
@@ -153,6 +159,13 @@ public class AuctionService : IAuctionService
             throw new Exception("Auction is not active");
         }
 
+        // ✅ TJEK: Er auktionen udløbet ift. katalogets slutdato?
+        if (auction.EndDate < DateTime.UtcNow)
+        {
+            _logger.LogWarning($"Cannot place bid. Auction with ID: {bid.AuctionId} is expired. EndDate: {auction.EndDate}");
+            throw new Exception("Auction has ended");
+        }
+
         bid.Timestamp = DateTime.UtcNow;
         auction.BidHistory.Add(bid);
         auction.CurrentBid = bid;
@@ -161,4 +174,5 @@ public class AuctionService : IAuctionService
         _logger.LogInformation($"Bid for Auction ID: {bid.AuctionId} created successfully.");
         return auction;
     }
+
 }
