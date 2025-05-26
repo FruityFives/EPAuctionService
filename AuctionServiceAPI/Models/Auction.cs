@@ -11,6 +11,9 @@ public class Auction
     public AuctionStatus Status { get; set; }
     public string Name { get; set; } = string.Empty;
     public Guid? CatalogId { get; set; }  // FK
+
+    public DateTime EndDate { get; set; } // 👈 arver fra Catalog
+
     public List<BidDTO> BidHistory { get; set; } = new(); // FK - Historik over bud
 
     public double MinPrice { get; set; }    // Det nuværende højeste bud - FK
