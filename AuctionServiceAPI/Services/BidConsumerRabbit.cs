@@ -6,12 +6,21 @@ using System.Text.Json;
 
 namespace AuctionServiceAPI.Services;
 
+/// <summary>
+/// Baggrundsservice, der lytter på RabbitMQ-beskeder med bud og opdaterer auktioner.
+/// </summary>
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IConfiguration _configuration;
     private readonly IServiceProvider _serviceProvider;
 
+    /// <summary>
+    /// Initialiserer Worker med logger, konfiguration og service provider til DI.
+    /// </summary>
+    /// <param name="logger">Logger til logning</param>
+    /// <param name="configuration">App-konfiguration</param>
+    /// <param name="serviceProvider">Service provider til afhængighedsinjektion</param>
     public Worker(ILogger<Worker> logger, IConfiguration configuration, IServiceProvider serviceProvider)
     {
         _logger = logger;
@@ -19,6 +28,11 @@ public class Worker : BackgroundService
         _serviceProvider = serviceProvider;
     }
 
+    /// <summary>
+    /// Udfører lytning på RabbitMQ-køen og håndterer indkomne budbeskeder.
+    /// </summary>
+    /// <param name="stoppingToken">Token til at afbryde eksekvering</param>
+    /// <returns>En Task der repræsenterer det kørende baggrundsarbejde</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Auction Worker started");

@@ -1,10 +1,11 @@
 using NUnit.Framework;
 using Moq;
+using AuctionServiceAPI.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Models;
-using AuctionServiceAPI.Repositories;
+
 
 namespace AuctionServiceAPI.Test
 {

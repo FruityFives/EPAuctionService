@@ -5,15 +5,26 @@ using RabbitMQ.Client;
 
 namespace AuctionServiceAPI.Services;
 
+/// <summary>
+/// Ansvarlig for at publicere auktioner til RabbitMQ.
+/// </summary>
 public class AuctionPublisherRabbit : IAuctionPublisherRabbit
 {
     private readonly ILogger<AuctionPublisherRabbit> _logger;
 
+    /// <summary>
+    /// Initialiserer AuctionPublisherRabbit med logger.
+    /// </summary>
+    /// <param name="logger">Logger til logning af hændelser</param>
     public AuctionPublisherRabbit(ILogger<AuctionPublisherRabbit> logger)
     {
         _logger = logger;
     }
 
+    /// <summary>
+    /// Sender en auktion som besked til RabbitMQ køen "syncAuctionQueue".
+    /// </summary>
+    /// <param name="auction">Auktionsobjektet der skal publiceres</param>
     public async Task PublishAuctionAsync(AuctionDTO auction)
     {
         var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";

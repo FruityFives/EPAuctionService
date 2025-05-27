@@ -8,12 +8,18 @@ using AuctionServiceAPI.Repositories;
 
 namespace AuctionServiceAPI.Test
 {
+    /// <summary>
+    /// Enhedstest af ICatalogRepository med mock og in-memory liste.
+    /// </summary>
     [TestFixture]
     public class CatalogRepositoryMockTests
     {
         private Mock<ICatalogRepository> _mockRepo;
         private List<Catalog> _inMemoryCatalogs;
 
+        /// <summary>
+        /// Initialiserer in-memory data og mock-repository før hver test.
+        /// </summary>
         [SetUp]
         public void Setup()
         {
@@ -51,10 +57,12 @@ namespace AuctionServiceAPI.Test
                      });
         }
 
+        /// <summary>
+        /// Tester at AddCatalog returnerer det tilføjede katalog og øger listen.
+        /// </summary>
         [Test]
         public async Task AddCatalog_ShouldReturnCatalogAndIncreaseCount()
         {
-            // Arrange
             var newCatalog = new Catalog
             {
                 CatalogId = Guid.NewGuid(),
@@ -64,39 +72,37 @@ namespace AuctionServiceAPI.Test
                 Status = CatalogStatus.Active
             };
 
-            // Act
             var result = await _mockRepo.Object.AddCatalog(newCatalog);
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(2, _inMemoryCatalogs.Count);
             Assert.That(_inMemoryCatalogs.Contains(result));
         }
 
+        /// <summary>
+        /// Tester at RemoveCatalog returnerer true hvis katalog findes.
+        /// </summary>
         [Test]
         public async Task RemoveCatalog_ShouldReturnTrue_WhenCatalogExists()
         {
-            // Arrange
             var existingId = _inMemoryCatalogs[0].CatalogId;
 
-            // Act
             var result = await _mockRepo.Object.RemoveCatalog(existingId);
 
-            // Assert
             Assert.IsTrue(result);
             Assert.That(_inMemoryCatalogs.Exists(c => c.CatalogId == existingId), Is.False);
         }
 
+        /// <summary>
+        /// Tester at RemoveCatalog returnerer false hvis katalog ikke findes.
+        /// </summary>
         [Test]
         public async Task RemoveCatalog_ShouldReturnFalse_WhenCatalogDoesNotExist()
         {
-            // Arrange
             var nonExistentId = Guid.NewGuid();
 
-            // Act
             var result = await _mockRepo.Object.RemoveCatalog(nonExistentId);
 
-            // Assert
             Assert.IsFalse(result);
         }
     }

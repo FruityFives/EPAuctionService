@@ -7,6 +7,9 @@ using System;
 using AuctionServiceAPI.Repositories;
 using Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Repository til håndtering af katalogdata i MongoDB.
+/// </summary>
 public class CatalogRepository : ICatalogRepository
 {
     private readonly List<Catalog> ListOfCatalogs;
@@ -15,7 +18,11 @@ public class CatalogRepository : ICatalogRepository
     private readonly IMongoCollection<Auction> _auctionCollection;
     private readonly ILogger<CatalogRepository> _logger;
 
-    /// Constructor
+    /// <summary>
+    /// Initialiserer CatalogRepository med MongoDB-kontekst og logger.
+    /// </summary>
+    /// <param name="context">MongoDB-kontekst</param>
+    /// <param name="logger">Logger til logning</param>
     public CatalogRepository(MongoDbContext context, ILogger<CatalogRepository> logger)
     {
         _logger = logger;
@@ -25,13 +32,22 @@ public class CatalogRepository : ICatalogRepository
         Console.WriteLine("CatalogRepository seeded");
     }
 
+    /// <summary>
+    /// Tilføjer et nyt katalog til databasen.
+    /// </summary>
+    /// <param name="catalog">Kataloget der skal tilføjes</param>
+    /// <returns>Det oprettede katalog</returns>
     public async Task<Catalog> AddCatalog(Catalog catalog)
     {
         await _catalogCollection.InsertOneAsync(catalog);
         _logger.LogInformation($"Catalog {catalog.Name} added with ID: {catalog.CatalogId}");
-        return catalog; //s
+        return catalog;
     }
 
+    /// <summary>
+    /// Seeder dummy-katalogdata til in-memory listen.
+    /// </summary>
+    /// <returns>Liste med seedede kataloger</returns>
     public List<Catalog> SeedDataCatalog()
     {
         ListOfCatalogs.Add(new Catalog
@@ -55,6 +71,11 @@ public class CatalogRepository : ICatalogRepository
         return ListOfCatalogs;
     }
 
+    /// <summary>
+    /// Fjerner et katalog fra databasen.
+    /// </summary>
+    /// <param name="id">ID for kataloget der skal fjernes</param>
+    /// <returns>True hvis kataloget blev fjernet, ellers false</returns>
     public async Task<bool> RemoveCatalog(Guid id)
     {
         var result = await _catalogCollection.DeleteOneAsync(c => c.CatalogId == id);
@@ -68,6 +89,11 @@ public class CatalogRepository : ICatalogRepository
         return true;
     }
 
+    /// <summary>
+    /// Henter et katalog ud fra dets ID.
+    /// </summary>
+    /// <param name="id">ID på det ønskede katalog</param>
+    /// <returns>Kataloget hvis det findes, ellers null</returns>
     public async Task<Catalog> GetCatalogById(Guid id)
     {
         var catalog = await _catalogCollection.Find(c => c.CatalogId == id).FirstOrDefaultAsync();
@@ -82,6 +108,11 @@ public class CatalogRepository : ICatalogRepository
         return catalog;
     }
 
+    /// <summary>
+    /// Henter alle auktioner tilknyttet et katalog.
+    /// </summary>
+    /// <param name="catalogId">ID på det ønskede katalog</param>
+    /// <returns>Liste med auktioner i kataloget</returns>
     public async Task<List<Auction>> GetAuctionsByCatalogId(Guid catalogId)
     {
         _logger.LogInformation($"Fetching auctions for Catalog ID: {catalogId}");
@@ -90,6 +121,11 @@ public class CatalogRepository : ICatalogRepository
         return auctions;
     }
 
+    /// <summary>
+    /// Opdaterer et eksisterende katalog i databasen.
+    /// </summary>
+    /// <param name="catalog">Kataloget der skal opdateres</param>
+    /// <returns>Det opdaterede katalog hvis opdatering lykkedes, ellers null</returns>
     public async Task<Catalog?> UpdateCatalog(Catalog catalog)
     {
         var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
@@ -104,6 +140,10 @@ public class CatalogRepository : ICatalogRepository
         return null;
     }
 
+    /// <summary>
+    /// Henter alle kataloger fra databasen.
+    /// </summary>
+    /// <returns>Liste med alle kataloger</returns>
     public async Task<List<Catalog>> GetAllCatalogs()
     {
         _logger.LogInformation("Retrieving all catalogs.");
@@ -112,9 +152,13 @@ public class CatalogRepository : ICatalogRepository
         return catalogs;
     }
 
+    /// <summary>
+    /// Gemmer (overskriver) et katalog i databasen.
+    /// </summary>
+    /// <param name="catalog">Kataloget der skal gemmes</param>
     public async Task SaveCatalog(Catalog catalog)
     {
-        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId); // ✅
+        var filter = Builders<Catalog>.Filter.Eq(c => c.CatalogId, catalog.CatalogId);
         var result = await _catalogCollection.ReplaceOneAsync(filter, catalog);
 
         if (result.IsAcknowledged && result.ModifiedCount > 0)
@@ -126,5 +170,4 @@ public class CatalogRepository : ICatalogRepository
             _logger.LogWarning($"Failed to save catalog with ID: {catalog.CatalogId}. It may not exist.");
         }
     }
-
 }
