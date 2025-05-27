@@ -6,12 +6,18 @@ using Microsoft.Extensions.Logging;
 
 namespace AuctionServiceAPI.Services;
 
+/// <summary>
+/// Service-lag for logik relateret til auktioner, herunder oprettelse, bud, statusopdateringer m.m.
+/// </summary>
 public class AuctionService : IAuctionService
 {
     private readonly IAuctionRepository _auctionRepository;
     private readonly ICatalogRepository _catalogRepository;
     private readonly ILogger<AuctionService> _logger;
 
+    /// <summary>
+    /// Initialiserer AuctionService med nødvendige repositories og logger.
+    /// </summary>
     public AuctionService(
         IAuctionRepository auctionRepository,
         ICatalogRepository catalogRepository,
@@ -22,6 +28,11 @@ public class AuctionService : IAuctionService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Opretter en ny auktion og knytter den til et katalog, hvis angivet.
+    /// </summary>
+    /// <param name="auction">Auktionsobjektet der skal oprettes.</param>
+    /// <returns>Returnerer den oprettede auktion.</returns>
     public async Task<Auction> CreateAuction(Auction auction)
     {
         auction.AuctionId = Guid.NewGuid();
@@ -30,7 +41,6 @@ public class AuctionService : IAuctionService
         var createdAuction = await _auctionRepository.AddAuction(auction);
         _logger.LogInformation($"Auction created with ID: {createdAuction.AuctionId}");
 
-        // ✅ Tjek om CatalogId er sat, før du forsøger at hente kataloget
         if (auction.CatalogId.HasValue)
         {
             var catalog = await _catalogRepository.GetCatalogById(auction.CatalogId.Value);
@@ -52,13 +62,14 @@ public class AuctionService : IAuctionService
         return createdAuction;
     }
 
-
-
+    /// <summary>
+    /// Importerer effekter fra StorageService og konverterer dem til inaktive auktioner.
+    /// </summary>
+    /// <returns>Liste af de auktioner der er blevet oprettet.</returns>
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
         using var httpClient = new HttpClient();
         var url = "http://storage-service:5000/api/storage/effectsforauction";
-
 
         var response = await httpClient.GetAsync(url);
         if (!response.IsSuccessStatusCode)
@@ -87,7 +98,6 @@ public class AuctionService : IAuctionService
                 Effect = effect,
             };
 
-
             await _auctionRepository.AddAuction(auction);
             createdAuctions.Add(auction);
         }
@@ -95,7 +105,13 @@ public class AuctionService : IAuctionService
         return createdAuctions;
     }
 
-
+    /// <summary>
+    /// Tilføjer en eksisterende auktion til et specifikt katalog og sætter minimumspris.
+    /// </summary>
+    /// <param name="auctionId">ID på auktionen der skal tilføjes.</param>
+    /// <param name="catalogId">ID på kataloget.</param>
+    /// <param name="minPrice">Minimumspris for auktionen.</param>
+    /// <returns>Returnerer den opdaterede auktion, eller null hvis den ikke findes.</returns>
     public async Task<Auction?> AddAuctionToCatalog(Guid auctionId, Guid catalogId, double minPrice)
     {
         var auction = await _auctionRepository.GetAuctionById(auctionId);
@@ -107,45 +123,62 @@ public class AuctionService : IAuctionService
         auction.CatalogId = catalogId;
         auction.MinPrice = minPrice;
         auction.Status = AuctionStatus.Active;
-        auction.EndDate = catalog.EndDate; // 👈 tilføj katalogets slutdato
+        auction.EndDate = catalog.EndDate;
 
         await _auctionRepository.SaveAuction(auction);
         return auction;
     }
 
-
-
-
+    /// <summary>
+    /// Henter en auktion baseret på ID.
+    /// </summary>
     public Task<Auction> GetAuctionById(Guid id)
     {
         _logger.LogInformation($"Fetching auction with ID: {id}");
         return _auctionRepository.GetAuctionById(id);
     }
 
+    /// <summary>
+    /// Sletter en auktion baseret på ID.
+    /// </summary>
     public Task<bool> DeleteAuction(Guid id)
     {
         _logger.LogInformation($"Deleting auction with ID: {id}");
         return _auctionRepository.RemoveAuction(id);
     }
 
+    /// <summary>
+    /// Opdaterer status på en auktion.
+    /// </summary>
     public Task<Auction> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
         _logger.LogInformation($"Updating auction status. Auction ID: {id}, New Status: {status}");
         return _auctionRepository.UpdateAuctionStatus(id, status);
     }
 
+    /// <summary>
+    /// Returnerer aktive auktioner for et bestemt katalog og status.
+    /// </summary>
     public Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
     {
         _logger.LogInformation($"Sending active auctions for Catalog ID: {catalogId} with Status: {status}");
         return _auctionRepository.SendActiveAuctions(catalogId, status);
     }
 
+    /// <summary>
+    /// Opdaterer en hel auktion (f.eks. ved redigering).
+    /// </summary>
     public Task<Auction?> UpdateAuction(Auction auction)
     {
         _logger.LogInformation($"Updating auction with ID: {auction.AuctionId}");
         return _auctionRepository.UpdateAuction(auction);
     }
 
+    /// <summary>
+    /// Opretter et bud på en auktion, hvis auktionen er aktiv og ikke afsluttet.
+    /// </summary>
+    /// <param name="bid">Det bud der skal placeres.</param>
+    /// <returns>Den opdaterede auktion med det nye bud.</returns>
     public async Task<Auction> CreateBidToAuctionById(BidDTO bid)
     {
         _logger.LogInformation($"Creating bid for Auction ID: {bid.AuctionId}");
@@ -159,7 +192,6 @@ public class AuctionService : IAuctionService
             throw new Exception("Auction is not active");
         }
 
-        // ✅ TJEK: Er auktionen udløbet ift. katalogets slutdato?
         if (auction.EndDate < DateTime.UtcNow)
         {
             _logger.LogWarning($"Cannot place bid. Auction with ID: {bid.AuctionId} is expired. EndDate: {auction.EndDate}");
@@ -174,5 +206,8 @@ public class AuctionService : IAuctionService
         _logger.LogInformation($"Bid for Auction ID: {bid.AuctionId} created successfully.");
         return auction;
     }
-
 }
+
+
+
+

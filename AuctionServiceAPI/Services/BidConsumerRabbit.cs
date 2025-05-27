@@ -6,12 +6,18 @@ using System.Text.Json;
 
 namespace AuctionServiceAPI.Services;
 
+/// <summary>
+/// Baggrundsservice der lytter til RabbitMQ for budbeskeder og behandler dem.
+/// </summary>
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IConfiguration _configuration;
     private readonly IServiceProvider _serviceProvider;
 
+    /// <summary>
+    /// Initialiserer Worker med logger, konfiguration og service provider.
+    /// </summary>
     public Worker(ILogger<Worker> logger, IConfiguration configuration, IServiceProvider serviceProvider)
     {
         _logger = logger;
@@ -19,6 +25,11 @@ public class Worker : BackgroundService
         _serviceProvider = serviceProvider;
     }
 
+    /// <summary>
+    /// Starter baggrundsservicen og opretter forbindelse til RabbitMQ.
+    /// Lytter til 'bidQueue' og forsøger at anvende indkommende bud på de korrekte auktioner.
+    /// </summary>
+    /// <param name="stoppingToken">Token til at stoppe servicen.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Auction Worker started");
@@ -52,36 +63,36 @@ public class Worker : BackgroundService
                     arguments: null
                 );
 
-                _logger.LogInformation(" [*] Waiting for bid messages...");
+                _logger.LogInformation(" [*] Venter på budbeskeder...");
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.ReceivedAsync += async (model, ea) =>
                 {
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
-                    _logger.LogInformation($" [x] Received: {message}");
+                    _logger.LogInformation($" [x] Modtaget: {message}");
 
                     try
                     {
                         var bidRequest = JsonSerializer.Deserialize<BidDTO>(message);
                         if (bidRequest == null)
                         {
-                            _logger.LogError("Deserialization returned null.");
+                            _logger.LogError("Deserialisering returnerede null.");
                             return;
                         }
 
                         using var scope = _serviceProvider.CreateScope();
                         var auctionService = scope.ServiceProvider.GetRequiredService<IAuctionService>();
                         await auctionService.CreateBidToAuctionById(bidRequest);
-                        _logger.LogInformation($"Bid {bidRequest.UserId} applied to auction {bidRequest.AuctionId}");
+                        _logger.LogInformation($"Bud fra bruger {bidRequest.UserId} anvendt på auktion {bidRequest.AuctionId}");
                     }
                     catch (JsonException jsonEx)
                     {
-                        _logger.LogError(jsonEx, "JSON deserialization failed.");
+                        _logger.LogError(jsonEx, "JSON-deserialisering fejlede.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error while processing bid.");
+                        _logger.LogError(ex, "Fejl under behandling af bud.");
                     }
 
                     await Task.CompletedTask;
@@ -94,19 +105,19 @@ public class Worker : BackgroundService
                     await Task.Delay(1000, stoppingToken);
                 }
 
-                break; // connection succeeded, break retry loop
+                break; // succesfuld forbindelse, afslut retry-loop
             }
             catch (Exception ex)
             {
                 attempt++;
-                _logger.LogWarning(ex, "Attempt {attempt} to connect to RabbitMQ failed. Retrying in 5s...", attempt);
+                _logger.LogWarning(ex, "Forsøg {attempt} på at forbinde til RabbitMQ fejlede. Prøver igen om 5 sekunder...", attempt);
                 await Task.Delay(5000, stoppingToken);
             }
         }
 
         if (attempt == maxAttempts)
         {
-            _logger.LogError("Failed to connect to RabbitMQ after {maxAttempts} attempts. Worker will stop.", maxAttempts);
+            _logger.LogError("Kunne ikke oprette forbindelse til RabbitMQ efter {maxAttempts} forsøg. Arbejder stoppes.", maxAttempts);
         }
     }
 }

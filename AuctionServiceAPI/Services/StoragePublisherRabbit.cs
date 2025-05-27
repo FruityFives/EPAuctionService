@@ -3,16 +3,29 @@ using RabbitMQ.Client;
 using System.Text.Json;
 
 namespace AuctionServiceAPI.Services;
+
+/// <summary>
+/// Service der sender afsluttede auktioner som beskeder til RabbitMQ.
+/// </summary>
 public class StoragePublisherRabbit : IStoragePublisherRabbit
 {
     private readonly ILogger<StoragePublisherRabbit> _logger;
 
+    /// <summary>
+    /// Initialiserer StoragePublisherRabbit med logger.
+    /// </summary>
+    /// <param name="logger">Logger til logning af RabbitMQ-hændelser.</param>
     public StoragePublisherRabbit(ILogger<StoragePublisherRabbit> logger)
     {
         _logger = logger;
         _logger.LogInformation("StoragePublisherRabbit initialized");
     }
 
+    /// <summary>
+    /// Publicerer en afsluttet auktion til RabbitMQ køen 'auctionQueue'.
+    /// </summary>
+    /// <param name="auction">DTO-objekt med oplysninger om auktionen.</param>
+    /// <returns>Asynkront Task.</returns>
     public async Task PublishAuctionAsync(AuctionDTO auction)
     {
         var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
@@ -52,7 +65,7 @@ public class StoragePublisherRabbit : IStoragePublisherRabbit
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to publish auction with EffectId {effectId} to RabbitMQ", auction.EffectId);
-            throw; // optionally rethrow or handle as needed
+            throw;
         }
     }
 }

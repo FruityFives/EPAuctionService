@@ -1,97 +1,101 @@
 using NUnit.Framework;
 using Moq;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Models;
+using System.Collections.Generic;
+using AuctionServiceAPI.Services;
 using AuctionServiceAPI.Repositories;
+using Microsoft.Extensions.Logging;
+using Models;
 
 namespace AuctionServiceAPI.Test
 {
     [TestFixture]
-    public class CatalogRepositoryTests
+    public class CatalogServiceTests
     {
-        private Mock<ICatalogRepository> _mockRepo;
-        private List<Catalog> _fakeCatalogList;
+        private Mock<ICatalogRepository> _catalogRepo;
+        private Mock<IAuctionRepository> _auctionRepo;
+        private Mock<IAuctionService> _auctionService;
+        private Mock<IStoragePublisherRabbit> _storagePublisher;
+        private Mock<ILogger<CatalogService>> _logger;
+
+        private CatalogService _service;
 
         [SetUp]
         public void Setup()
         {
-            _fakeCatalogList = new List<Catalog>
-            {
-                new Catalog
-                {
-                    CatalogId = Guid.NewGuid(),
-                    Name = "Catalog A",
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddDays(5),
-                    Status = CatalogStatus.Active
-                },
-                new Catalog
-                {
-                    CatalogId = Guid.NewGuid(),
-                    Name = "Catalog B",
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddDays(7),
-                    Status = CatalogStatus.Closed
-                }
-            };
+            _catalogRepo = new Mock<ICatalogRepository>();
+            _auctionRepo = new Mock<IAuctionRepository>();
+            _auctionService = new Mock<IAuctionService>();
+            _storagePublisher = new Mock<IStoragePublisherRabbit>();
+            _logger = new Mock<ILogger<CatalogService>>();
 
-            _mockRepo = new Mock<ICatalogRepository>();
-
-            _mockRepo.Setup(repo => repo.AddCatalog(It.IsAny<Catalog>()))
-                     .ReturnsAsync((Catalog c) =>
-                     {
-                         _fakeCatalogList.Add(c);
-                         return c;
-                     });
-
-            _mockRepo.Setup(repo => repo.RemoveCatalog(It.IsAny<Guid>()))
-                     .ReturnsAsync((Guid id) =>
-                     {
-                         var catalog = _fakeCatalogList.Find(c => c.CatalogId == id);
-                         if (catalog != null)
-                         {
-                             _fakeCatalogList.Remove(catalog);
-                             return true;
-                         }
-                         return false;
-                     });
+            _service = new CatalogService(
+                _auctionService.Object,
+                _catalogRepo.Object,
+                _auctionRepo.Object,
+                _storagePublisher.Object,
+                _logger.Object
+            );
         }
 
+        /// <summary>
+        /// Tester at CreateCatalog returnerer det samme katalog med sat ID.
+        /// Tester også at CreateCatalog returnerer katalog med navn.
+        /// </summary>
         [Test]
-        public async Task AddCatalog_ShouldIncreaseCatalogList()
+        public async Task CreateCatalog_ShouldReturnCatalogWithId()
         {
             // Arrange
-            var newCatalog = new Catalog
-            {
-                CatalogId = Guid.NewGuid(),
-                Name = "New Catalog",
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddDays(3),
-                Status = CatalogStatus.Active
-            };
+            var input = new Catalog {CatalogId = Guid.NewGuid(), Name = "Test Catalog"};
+
+            _catalogRepo.Setup(r => r.AddCatalog(It.IsAny<Catalog>()))
+                .ReturnsAsync((Catalog c) => c);
 
             // Act
-            var result = await _mockRepo.Object.AddCatalog(newCatalog);
+            var result = await _service.CreateCatalog(input);
 
             // Assert
-            Assert.That(_fakeCatalogList.Count, Is.EqualTo(3));
-            Assert.That(result.Name, Is.EqualTo("New Catalog"));
+            Assert.AreEqual(input.CatalogId, result.CatalogId);
+            Assert.AreEqual("Test Catalog", result.Name);
         }
 
+        /// <summary>
+        /// Tester at DeleteCatalog returnerer true når katalog findes.
+        /// </summary>
         [Test]
-        public async Task RemoveCatalog_ShouldDecreaseCatalogList()
+        public async Task DeleteCatalog_ShouldReturnTrue()
         {
             // Arrange
-            var catalogIdToRemove = _fakeCatalogList[0].CatalogId;
+            var catalogId = Guid.NewGuid();
+            _catalogRepo.Setup(r => r.RemoveCatalog(catalogId)).ReturnsAsync(true);
 
             // Act
-            var result = await _mockRepo.Object.RemoveCatalog(catalogIdToRemove);
+            var result = await _service.DeleteCatalog(catalogId);
 
             // Assert
             Assert.IsTrue(result);
-            Assert.That(_fakeCatalogList.Count, Is.EqualTo(1));
+        }
+
+        /// <summary>
+        /// Tester at GetAllCatalogs kalder repository og returnerer listen.
+        /// </summary>
+        [Test]
+        public async Task GetAllCatalogs_ShouldReturnCatalogList()
+        {
+            // Arrange
+            _catalogRepo.Setup(r => r.GetAllCatalogs())
+                        .ReturnsAsync(new List<Catalog>
+                        {
+                            new Catalog { Name = "A" },
+                            new Catalog { Name = "B" }
+                        });
+
+            // Act
+            var result = await _service.GetAllCatalogs();
+
+            // Assert
+            Assert.That(result.Count, Is.EqualTo(2));
         }
     }
 }

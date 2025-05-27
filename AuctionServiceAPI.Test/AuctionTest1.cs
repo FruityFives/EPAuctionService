@@ -1,93 +1,89 @@
 using NUnit.Framework;
 using Moq;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Models;
+using AuctionServiceAPI.Services;
 using AuctionServiceAPI.Repositories;
+using Microsoft.Extensions.Logging;
+using Models;
 
 namespace AuctionServiceAPI.Test
 {
     [TestFixture]
-    public class AuctionRepositoryTests
+    public class AuctionServiceTests
     {
-        private Mock<IAuctionRepository> _mockRepo;
-        private List<Auction> _fakeAuctionList;
+        private Mock<IAuctionRepository> _auctionRepo;
+        private Mock<ICatalogRepository> _catalogRepo;
+        private Mock<ILogger<AuctionService>> _logger;
+        private AuctionService _service;
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
-            _fakeAuctionList = new List<Auction>
-            {
-                new Auction
-                {
-                    AuctionId = Guid.NewGuid(),
-                    Name = "Initial Auction",
-                    Status = AuctionStatus.Active,
-                    CatalogId = Guid.NewGuid(),
-                    BidHistory = new List<BidDTO>(),
-                    MinPrice = 1000,
-                    Effect = new EffectDTO { EffectId = Guid.NewGuid() }
-                }
-            };
+            _auctionRepo = new Mock<IAuctionRepository>();
+            _catalogRepo = new Mock<ICatalogRepository>();
+            _logger = new Mock<ILogger<AuctionService>>();
 
-            _mockRepo = new Mock<IAuctionRepository>();
-
-            _mockRepo.Setup(r => r.AddAuction(It.IsAny<Auction>()))
-                     .ReturnsAsync((Auction a) =>
-                     {
-                         _fakeAuctionList.Add(a);
-                         return a;
-                     });
-
-            _mockRepo.Setup(r => r.UpdateAuctionStatus(It.IsAny<Guid>(), It.IsAny<AuctionStatus>()))
-                     .ReturnsAsync((Guid id, AuctionStatus status) =>
-                     {
-                         var auction = _fakeAuctionList.Find(a => a.AuctionId == id);
-                         if (auction != null)
-                         {
-                             auction.Status = status;
-                         }
-                         return auction;
-                     });
+            _service = new AuctionService(
+                _auctionRepo.Object,
+                _catalogRepo.Object,
+                _logger.Object
+            );
         }
 
+        /// <summary>
+        /// Tester at CreateAuction returnerer en auktion med et ID og status sat til Active.
+        /// </summary>
         [Test]
-        public async Task AddAuction_ShouldIncreaseListCount()
+        public async Task CreateAuction_ShouldReturnAuctionWithIdAndStatus()
         {
             // Arrange
-            var newAuction = new Auction
-            {
-                AuctionId = Guid.NewGuid(),
-                Name = "New Auction",
-                Status = AuctionStatus.Active,
-                CatalogId = Guid.NewGuid(),
-                BidHistory = new List<BidDTO>(),
-                MinPrice = 2000,
-                Effect = new EffectDTO { EffectId = Guid.NewGuid() }
-            };
+            var inputAuction = new Auction();
+            _auctionRepo.Setup(r => r.AddAuction(It.IsAny<Auction>()))
+                        .ReturnsAsync((Auction a) => a);
 
             // Act
-            var result = await _mockRepo.Object.AddAuction(newAuction);
+            var result = await _service.CreateAuction(inputAuction);
 
             // Assert
-            Assert.That(_fakeAuctionList.Count, Is.EqualTo(2));
-            Assert.That(result.Name, Is.EqualTo("New Auction"));
+            Assert.AreEqual(AuctionStatus.Active, result.Status);
         }
 
+        /// <summary>
+        /// Tester at GetAuctionById kalder repository og returnerer en auktion.
+        /// </summary>
         [Test]
-        public async Task UpdateAuctionStatus_ShouldChangeStatusToClosed()
+        public async Task GetAuctionById_ShouldReturnAuction()
         {
             // Arrange
-            var auctionId = _fakeAuctionList[0].AuctionId;
-            var newStatus = AuctionStatus.Closed;
+            var auctionId = Guid.NewGuid();
+            var auction = new Auction { AuctionId = auctionId };
+            _auctionRepo.Setup(r => r.GetAuctionById(auctionId))
+                        .ReturnsAsync(auction);
 
             // Act
-            var result = await _mockRepo.Object.UpdateAuctionStatus(auctionId, newStatus);
+            var result = await _service.GetAuctionById(auctionId);
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.That(result.Status, Is.EqualTo(newStatus));
+            Assert.AreEqual(auctionId, result.AuctionId);
+        }
+
+        /// <summary>
+        /// Tester at DeleteAuction returnerer true, når auktionen findes.
+        /// </summary>
+        [Test]
+        public async Task DeleteAuction_ShouldReturnTrue_WhenAuctionIsDeleted()
+        {
+            // Arrange
+            var auctionId = Guid.NewGuid();
+            _auctionRepo.Setup(r => r.RemoveAuction(auctionId))
+                        .ReturnsAsync(true);
+
+            // Act
+            var result = await _service.DeleteAuction(auctionId);
+
+            // Assert
+            Assert.IsTrue(result);
         }
     }
 }

@@ -12,6 +12,7 @@
     <FileVersion>1.0.1.1</FileVersion>
     <InformationalVersion>6.0.8</InformationalVersion>
     <Description>
+      6.1.0 added summaries and test + route name changed
       6.0.8 updated placebid function
       6.0.7 Worker updated to retry on failure
       6.0.6 Small errors fixed
