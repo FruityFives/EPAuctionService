@@ -55,6 +55,20 @@ public class AuctionController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("import-from-storage")]
+    public async Task<IActionResult> ImportFromStorage()
+    {
+        try
+        {
+            var result = await _auctionService.ImportEffectsFromStorageAsync();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Fejl: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Sletter en auktion baseret på dens ID.
     /// </summary>
