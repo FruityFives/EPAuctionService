@@ -55,6 +55,10 @@ public class AuctionController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Henter alle effekter i storage, der kan importeres til auktioner.
+    /// Henter kun effekter, der har status "InStorage"
+    /// /// </summary>
     [HttpPost("import-from-storage")]
     public async Task<IActionResult> ImportFromStorage()
     {
