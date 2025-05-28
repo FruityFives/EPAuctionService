@@ -7,7 +7,7 @@ using Models;
 using AuctionServiceAPI.Repositories;
 using AuctionServiceAPI.Services;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Configuration;
 namespace AuctionServiceAPI.Test
 {
     /// <summary>
@@ -28,13 +28,18 @@ namespace AuctionServiceAPI.Test
             _mockCatalogRepo = new Mock<ICatalogRepository>();
             _mockPublisher = new Mock<IAuctionPublisherRabbit>();
             var mockLogger = new Mock<ILogger<AuctionService>>();
+            var mockConfig = new Mock<IConfiguration>();
+            mockConfig.Setup(c => c["STORAGE_SERVICE_BASE_URL"]).Returns("http://mock-storage/api/storage");
+
 
             _auctionService = new AuctionService(
                 _mockAuctionRepo.Object,
                 _mockCatalogRepo.Object,
                 _mockPublisher.Object,
                 _mockPublisher.Object,
-                mockLogger.Object
+                mockLogger.Object,
+                mockConfig.Object
+
             );
         }
 
