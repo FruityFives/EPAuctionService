@@ -17,6 +17,11 @@ public class AuctionService : IAuctionService
     private readonly IAuctionPublisherRabbit _syncPublisher;
     private readonly ILogger<AuctionService> _logger;
 
+
+
+    private readonly IConfiguration _config;
+
+
     /// <summary>
     /// Initialiserer AuctionService med nødvendige repositories, RabbitMQ publishers og logger.
     /// </summary>
@@ -30,13 +35,15 @@ public class AuctionService : IAuctionService
         ICatalogRepository catalogRepository,
         IAuctionPublisherRabbit publisher,
         IAuctionPublisherRabbit syncPublisher,
-        ILogger<AuctionService> logger)
+        ILogger<AuctionService> logger,
+        IConfiguration config)
     {
         _auctionRepository = auctionRepository;
         _catalogRepository = catalogRepository;
         _publisher = publisher;
         _syncPublisher = syncPublisher;
         _logger = logger;
+        _config = config;
     }
 
     /// <summary>
@@ -46,7 +53,8 @@ public class AuctionService : IAuctionService
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
         using var httpClient = new HttpClient();
-        var url = "http://storage-service:5000/api/storage/effectsforauction";
+        var baseUrl = _config["STORAGE_SERVICE_BASE_URL"];
+        var url = $"{baseUrl}/effectsforauction";
 
         var response = await httpClient.GetAsync(url);
         if (!response.IsSuccessStatusCode)
@@ -63,7 +71,7 @@ public class AuctionService : IAuctionService
 
         foreach (var effect in effects)
         {
-            var markAsInAuctionUrl = $"http://storage-service:5000/api/storage/effect/markAsInAuction/{effect.EffectId}";
+            var markAsInAuctionUrl = $"{baseUrl}/effect/markAsInAuction/{effect.EffectId}";
 
             var updateResponse = await httpClient.PostAsync(markAsInAuctionUrl, null);
 
