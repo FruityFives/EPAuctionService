@@ -53,32 +53,47 @@ public class AuctionService : IAuctionService
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
         using var httpClient = new HttpClient();
+
         var baseUrl = _config["STORAGE_SERVICE_BASE_URL"];
         var url = $"{baseUrl}/effectsforauction";
 
+        _logger.LogInformation("Sender GET-request til: {Url}", url);
+
         var response = await httpClient.GetAsync(url);
+        _logger.LogInformation("Modtaget svar med statuskode: {StatusCode}", response.StatusCode);
+
         if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Fejl ved hentning af effekter. Status: {StatusCode}, Body: {Body}", response.StatusCode, errorContent);
             throw new Exception($"Could not fetch effects: {response.StatusCode}");
+        }
 
         var content = await response.Content.ReadAsStringAsync();
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        _logger.LogInformation("Modtaget body fra StorageService: {Content}", content);
 
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var effects = JsonSerializer.Deserialize<List<EffectDTO>>(content, options);
+
         if (effects == null || effects.Count == 0)
+        {
+            _logger.LogWarning("Ingen effekter blev returneret fra StorageService.");
             return new List<Auction>();
+        }
+
+        _logger.LogInformation("Antal effekter modtaget: {Count}", effects.Count);
 
         var createdAuctions = new List<Auction>();
 
         foreach (var effect in effects)
         {
             var markAsInAuctionUrl = $"{baseUrl}/markAsInAuction/{effect.EffectId}";
+            _logger.LogInformation("Markerer effekt som InAuction: {EffectId} via POST: {Url}", effect.EffectId, markAsInAuctionUrl);
 
             var updateResponse = await httpClient.PostAsync(markAsInAuctionUrl, null);
-
             if (!updateResponse.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Effect ID {Id} kunne ikke opdateres til InAuction. Status: {StatusCode}",
-                    effect.EffectId, updateResponse.StatusCode);
+                _logger.LogWarning("Kunne ikke opdatere status for effekt {Id}. Status: {StatusCode}", effect.EffectId, updateResponse.StatusCode);
                 continue;
             }
 
@@ -96,11 +111,14 @@ public class AuctionService : IAuctionService
             };
 
             await _auctionRepository.AddAuction(auction);
+            _logger.LogInformation("Auktion oprettet for effekt {EffectId} med auktion ID {AuctionId}", effect.EffectId, auction.AuctionId);
             createdAuctions.Add(auction);
         }
 
+        _logger.LogInformation("Total auktioner oprettet: {Count}", createdAuctions.Count);
         return createdAuctions;
     }
+
 
     /// <summary>
     /// Tildeler en auktion til et katalog og opdaterer dens status.

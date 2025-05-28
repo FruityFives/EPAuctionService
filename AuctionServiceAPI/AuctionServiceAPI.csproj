@@ -12,6 +12,7 @@
     <FileVersion>1.0.1.1</FileVersion>
     <InformationalVersion>6.2.2</InformationalVersion>
     <Description>
+      6.2.3 Logging for function
       6.2.2 Route fixed
       6.2.1 Updated test
       6.2.0 Envirenment variable for HttpClient
