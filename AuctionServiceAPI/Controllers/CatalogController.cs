@@ -122,7 +122,7 @@ namespace AuctionServiceAPI.Controllers
         /// <summary>
         /// Opretter et nyt katalog.
         /// </summary>
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateCatalog([FromBody] Catalog catalog)
         {
             _logger.LogInformation("CreateCatalog called with Catalog: {@Catalog}", catalog);
