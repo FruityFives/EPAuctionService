@@ -71,7 +71,7 @@ public class AuctionService : IAuctionService
 
         foreach (var effect in effects)
         {
-            var markAsInAuctionUrl = $"{baseUrl}/effect/markAsInAuction/{effect.EffectId}";
+            var markAsInAuctionUrl = $"{baseUrl}/markAsInAuction/{effect.EffectId}";
 
             var updateResponse = await httpClient.PostAsync(markAsInAuctionUrl, null);
 
