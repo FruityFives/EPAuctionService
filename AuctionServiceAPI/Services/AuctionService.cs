@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace AuctionServiceAPI.Services;
 
+/// <summary>
+/// Service til håndtering af forretningslogik for auktioner.
+/// </summary>
 public class AuctionService : IAuctionService
 {
     private readonly IAuctionRepository _auctionRepository;
@@ -14,6 +17,14 @@ public class AuctionService : IAuctionService
     private readonly IAuctionPublisherRabbit _syncPublisher;
     private readonly ILogger<AuctionService> _logger;
 
+    /// <summary>
+    /// Initialiserer AuctionService med nødvendige repositories, RabbitMQ publishers og logger.
+    /// </summary>
+    /// <param name="auctionRepository">Repository til auktioner</param>
+    /// <param name="catalogRepository">Repository til kataloger</param>
+    /// <param name="publisher">RabbitMQ publisher</param>
+    /// <param name="syncPublisher">RabbitMQ publisher til synkronisering</param>
+    /// <param name="logger">Logger til logning</param>
     public AuctionService(
         IAuctionRepository auctionRepository,
         ICatalogRepository catalogRepository,
@@ -28,8 +39,10 @@ public class AuctionService : IAuctionService
         _logger = logger;
     }
 
-
-
+    /// <summary>
+    /// Importerer effekter fra StorageService og opretter nye auktioner.
+    /// </summary>
+    /// <returns>Liste over oprettede auktioner</returns>
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
         using var httpClient = new HttpClient();
@@ -81,7 +94,13 @@ public class AuctionService : IAuctionService
         return createdAuctions;
     }
 
-
+    /// <summary>
+    /// Tildeler en auktion til et katalog og opdaterer dens status.
+    /// </summary>
+    /// <param name="auctionId">ID på auktionen</param>
+    /// <param name="catalogId">ID på kataloget</param>
+    /// <param name="minPrice">Minimumspris for auktionen</param>
+    /// <returns>Den opdaterede auktion eller null, hvis auktion eller katalog ikke blev fundet</returns>
     public async Task<Auction?> AddAuctionToCatalog(Guid auctionId, Guid catalogId, double minPrice)
     {
         var auction = await _auctionRepository.GetAuctionById(auctionId);
@@ -93,7 +112,7 @@ public class AuctionService : IAuctionService
         auction.CatalogId = catalogId;
         auction.MinPrice = minPrice;
         auction.Status = AuctionStatus.Active;
-        auction.EndDate = catalog.EndDate; 
+        auction.EndDate = catalog.EndDate;
 
         await _auctionRepository.SaveAuction(auction);
 
@@ -112,36 +131,69 @@ public class AuctionService : IAuctionService
         return auction;
     }
 
+    /// <summary>
+    /// Henter en auktion baseret på ID.
+    /// </summary>
+    /// <param name="id">ID på auktionen</param>
+    /// <returns>Den fundne auktion</returns>
     public Task<Auction> GetAuctionById(Guid id)
     {
         _logger.LogInformation($"Fetching auction with ID: {id}");
         return _auctionRepository.GetAuctionById(id);
     }
 
+    /// <summary>
+    /// Sletter en auktion ud fra ID.
+    /// </summary>
+    /// <param name="id">ID på auktionen</param>
+    /// <returns>True hvis auktionen blev slettet, ellers false</returns>
     public Task<bool> DeleteAuction(Guid id)
     {
         _logger.LogInformation($"Deleting auction with ID: {id}");
         return _auctionRepository.RemoveAuction(id);
     }
 
+    /// <summary>
+    /// Opdaterer status for en auktion.
+    /// </summary>
+    /// <param name="id">ID på auktionen</param>
+    /// <param name="status">Ny status</param>
+    /// <returns>Den opdaterede auktion</returns>
     public Task<Auction> UpdateAuctionStatus(Guid id, AuctionStatus status)
     {
         _logger.LogInformation($"Updating auction status. Auction ID: {id}, New Status: {status}");
         return _auctionRepository.UpdateAuctionStatus(id, status);
     }
 
+    /// <summary>
+    /// Sender aktive auktioner i et katalog til en ekstern service.
+    /// </summary>
+    /// <param name="catalogId">ID på kataloget</param>
+    /// <param name="status">Filtrering efter auktionens status</param>
+    /// <returns>Liste over aktive auktioner</returns>
     public Task<List<Auction>> SendActiveAuctions(Guid catalogId, AuctionStatus status)
     {
         _logger.LogInformation($"Sending active auctions for Catalog ID: {catalogId} with Status: {status}");
         return _auctionRepository.SendActiveAuctions(catalogId, status);
     }
 
+    /// <summary>
+    /// Opdaterer en eksisterende auktion.
+    /// </summary>
+    /// <param name="auction">Auktionsobjekt der skal opdateres</param>
+    /// <returns>Den opdaterede auktion eller null</returns>
     public Task<Auction?> UpdateAuction(Auction auction)
     {
         _logger.LogInformation($"Updating auction with ID: {auction.AuctionId}");
         return _auctionRepository.UpdateAuction(auction);
     }
 
+    /// <summary>
+    /// Opretter et bud på en specifik auktion.
+    /// </summary>
+    /// <param name="bid">Buddata, inkl. auktionens ID og beløb</param>
+    /// <returns>Den opdaterede auktion med buddet tilføjet</returns>
+    /// <exception cref="Exception">Kastes hvis auktionen ikke findes, er inaktiv eller afsluttet</exception>
     public async Task<Auction> CreateBidToAuctionById(BidDTO bid)
     {
         _logger.LogInformation($"Creating bid for Auction ID: {bid.AuctionId}");

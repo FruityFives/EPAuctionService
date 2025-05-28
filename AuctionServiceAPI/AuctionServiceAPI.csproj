@@ -12,6 +12,8 @@
     <FileVersion>1.0.1.1</FileVersion>
     <InformationalVersion>6.0.9</InformationalVersion>
     <Description>
+      6.1.0 New endpoint for testing Import from storage
+      6.0.10 add summaries to methods
       6.0.9 Rabbit queue added for bid
       6.0.8 updated placebid function
       6.0.7 Worker updated to retry on failure

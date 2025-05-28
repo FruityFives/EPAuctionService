@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AuctionServiceAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/catalog")]
     [ApiController]
     public class CatalogController : ControllerBase
     {
@@ -35,6 +35,9 @@ namespace AuctionServiceAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Henter alle aktive auktioner for i dag.
+        /// </summary>
         [HttpGet("all-auctions-today")]
         public async Task<IActionResult> GetAllAuctionsToday()
         {
@@ -51,7 +54,9 @@ namespace AuctionServiceAPI.Controllers
             return Ok(auctions);
         }
 
-
+        /// <summary>
+        /// Importerer effekter fra StorageService til kataloget.
+        /// </summary>
         [HttpPost("import-effects-from-storage")]
         public async Task<IActionResult> ImportEffectsFromStorage()
         {
@@ -68,7 +73,9 @@ namespace AuctionServiceAPI.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Returnerer information om version og hosting IP.
+        /// </summary>
         [HttpGet("version")]
         public async Task<Dictionary<string, string>> GetVersion()
         {
@@ -93,6 +100,9 @@ namespace AuctionServiceAPI.Controllers
             return props;
         }
 
+        /// <summary>
+        /// Henter alle kataloger.
+        /// </summary>
         [HttpGet("all")]
         public async Task<IActionResult> GetAllCatalogs()
         {
@@ -109,6 +119,9 @@ namespace AuctionServiceAPI.Controllers
             return Ok(catalogs);
         }
 
+        /// <summary>
+        /// Opretter et nyt katalog.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateCatalog([FromBody] Catalog catalog)
         {
@@ -133,6 +146,9 @@ namespace AuctionServiceAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Henter et katalog ud fra dets ID.
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCatalogById(Guid id)
         {
@@ -148,6 +164,9 @@ namespace AuctionServiceAPI.Controllers
             return Ok(catalog);
         }
 
+        /// <summary>
+        /// Sletter et katalog baseret på ID.
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCatalog(Guid id)
         {
@@ -164,6 +183,9 @@ namespace AuctionServiceAPI.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Henter alle auktioner i et givent katalog. Kan filtreres efter status.
+        /// </summary>
         [HttpGet("{catalogId}/auctions")]
         public async Task<IActionResult> GetAuctionsByCatalogId(Guid catalogId, [FromQuery] AuctionStatus? status)
         {
@@ -183,6 +205,9 @@ namespace AuctionServiceAPI.Controllers
             return Ok(auctions);
         }
 
+        /// <summary>
+        /// Håndterer afslutning af auktioner i et katalog.
+        /// </summary>
         [HttpPost("{catalogId}/handle-finish")]
         public async Task<IActionResult> HandleAuctionFinish(Guid catalogId)
         {
@@ -201,6 +226,9 @@ namespace AuctionServiceAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Afslutter et katalog og dets auktioner.
+        /// </summary>
         [HttpPost("{catalogId}/end")]
         public async Task<IActionResult> EndCatalog(Guid catalogId)
         {

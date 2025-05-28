@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 
 namespace AuctionServiceAPI.Controllers;
 
+/// <summary>
+/// Controller til håndtering af auktioner.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auction")]
 public class AuctionController : ControllerBase
 {
     private readonly IAuctionService _auctionService;
@@ -21,6 +24,9 @@ public class AuctionController : ControllerBase
         _logger.LogInformation("AuctionController initialized");
     }
 
+    /// <summary>
+    /// Tildeler en auktion til et katalog med en minimumspris.
+    /// </summary>
     [HttpPost("{auctionId}/assign-to-catalog")]
     public async Task<IActionResult> AssignAuctionToCatalog(Guid auctionId, [FromQuery] Guid catalogId, [FromQuery] double minPrice)
     {
@@ -31,7 +37,9 @@ public class AuctionController : ControllerBase
         return Ok(result);
     }
 
-
+    /// <summary>
+    /// Henter en auktion baseret på dens ID.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAuctionById(Guid id)
     {
@@ -47,7 +55,27 @@ public class AuctionController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Henter alle effekter i storage, der kan importeres til auktioner.
+    /// Henter kun effekter, der har status "InStorage"
+    /// /// </summary>
+    [HttpPost("import-from-storage")]
+    public async Task<IActionResult> ImportFromStorage()
+    {
+        try
+        {
+            var result = await _auctionService.ImportEffectsFromStorageAsync();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Fejl: {ex.Message}");
+        }
+    }
 
+    /// <summary>
+    /// Sletter en auktion baseret på dens ID.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAuction(Guid id)
     {
@@ -64,6 +92,9 @@ public class AuctionController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Opdaterer status på en auktion.
+    /// </summary>
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateAuctionStatus(Guid id, [FromBody] AuctionStatus status)
     {

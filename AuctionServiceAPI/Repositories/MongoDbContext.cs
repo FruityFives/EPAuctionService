@@ -8,18 +8,47 @@ using Microsoft.Extensions.Configuration;
 
 namespace AuctionServiceAPI.Repositories
 {
+    /// <summary>
+    /// Interface til MongoDB-kontekst, der giver adgang til auktion- og katalog-collections.
+    /// </summary>
     public interface IMongoDbContext
     {
+        /// <summary>
+        /// Collection for auktioner.
+        /// </summary>
         IMongoCollection<Auction> AuctionCollection { get; }
+
+        /// <summary>
+        /// Collection for kataloger.
+        /// </summary>
         IMongoCollection<Catalog> CatalogCollection { get; }
     }
 
+    /// <summary>
+    /// Implementation af MongoDB-kontekst til AuctionService.
+    /// </summary>
     public class MongoDbContext : IMongoDbContext
     {
+        /// <summary>
+        /// MongoDB-database instans.
+        /// </summary>
         public IMongoDatabase Database { get; }
+
+        /// <summary>
+        /// MongoDB-collection for auktioner.
+        /// </summary>
         public IMongoCollection<Auction> AuctionCollection { get; }
+
+        /// <summary>
+        /// MongoDB-collection for kataloger.
+        /// </summary>
         public IMongoCollection<Catalog> CatalogCollection { get; }
 
+        /// <summary>
+        /// Initialiserer MongoDB-konteksten med konfiguration og logger.
+        /// </summary>
+        /// <param name="logger">Logger til logning af forbindelsesinformation</param>
+        /// <param name="config">Konfiguration med forbindelsesstreng og collection-navne</param>
         public MongoDbContext(ILogger<MongoDbContext> logger, IConfiguration config)
         {
             var connectionString = config["MONGODB_URI"] ?? "mongodb://mongo:27017";
@@ -41,6 +70,5 @@ namespace AuctionServiceAPI.Repositories
             AuctionCollection = Database.GetCollection<Auction>(collectionAuction);
             CatalogCollection = Database.GetCollection<Catalog>(collectionCatalog);
         }
-
     }
 }
