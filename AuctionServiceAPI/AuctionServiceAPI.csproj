@@ -10,7 +10,7 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>6.0.9</InformationalVersion>
+    <InformationalVersion>6.1.0</InformationalVersion>
     <Description>
       6.1.0 New endpoint for testing Import from storage
       6.0.10 add summaries to methods
