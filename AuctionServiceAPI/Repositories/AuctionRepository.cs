@@ -36,38 +36,7 @@ public class AuctionRepository : IAuctionRepository
         return auction;
     }
 
-    /// <summary>
-    /// Seeder databasen med to test-auktioner.
-    /// </summary>
-    public async Task<List<Auction>> SeedDataAuction()
-    {
-        var seedAuctions = new List<Auction>
-        {
-            new Auction
-            {
-                AuctionId = Guid.Parse("6f8c03f1-8405-4d0e-b86b-6ad94ea4a3a7"),
-                Name = "Auction 1",
-                Status = AuctionStatus.Active,
-                BidHistory = new List<BidDTO>(),
-                MinPrice = 5000,
-                Effect = new EffectDTO { EffectId = Guid.NewGuid() }
-            },
-            new Auction
-            {
-                AuctionId = Guid.Parse("b68e3d5f-1a12-4c0e-99e4-92793f3040d6"),
-                Name = "Auction 2",
-                Status = AuctionStatus.Closed,
-                BidHistory = new List<BidDTO>(),
-                MinPrice = 10000,
-                Effect = new EffectDTO { EffectId = Guid.NewGuid() }
-            }
-        };
-
-        await _auctionCollection.InsertManyAsync(seedAuctions);
-        _logger.LogInformation($"Seeded {seedAuctions.Count} auctions into MongoDB");
-
-        return seedAuctions;
-    }
+    
 
     /// <summary>
     /// Fjerner en auktion ud fra ID.

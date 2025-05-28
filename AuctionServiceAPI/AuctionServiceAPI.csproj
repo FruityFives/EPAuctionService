@@ -10,8 +10,9 @@
     <Copyright>2024 HTU Aps</Copyright>
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>6.2.5</InformationalVersion>
+    <InformationalVersion>6.3.5</InformationalVersion>
     <Description>
+      6.3.5 Seeddata Removed
       6.2.5 logging
       6.2.4 Route fixed
       6.2.3 Logging for function

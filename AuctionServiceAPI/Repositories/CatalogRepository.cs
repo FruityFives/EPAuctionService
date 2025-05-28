@@ -44,32 +44,6 @@ public class CatalogRepository : ICatalogRepository
         return catalog;
     }
 
-    /// <summary>
-    /// Seeder dummy-katalogdata til in-memory listen.
-    /// </summary>
-    /// <returns>Liste med seedede kataloger</returns>
-    public List<Catalog> SeedDataCatalog()
-    {
-        ListOfCatalogs.Add(new Catalog
-        {
-            CatalogId = Guid.Parse("d1f8c03f-8405-4d0e-b86b-6ad94ea4a3a7"),
-            Name = "Catalog 1",
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(7),
-            Status = CatalogStatus.Active
-        });
-
-        ListOfCatalogs.Add(new Catalog
-        {
-            CatalogId = Guid.Parse("e68e3d5f-1a12-4c0e-99e4-92793f3040d6"),
-            Name = "Catalog 2",
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(14),
-            Status = CatalogStatus.Closed
-        });
-
-        return ListOfCatalogs;
-    }
 
     /// <summary>
     /// Fjerner et katalog fra databasen.
