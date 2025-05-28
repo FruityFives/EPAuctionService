@@ -87,7 +87,7 @@ public class AuctionService : IAuctionService
 
         foreach (var effect in effects)
         {
-            var markAsInAuctionUrl = $"{baseUrl}/markAsInAuction/{effect.EffectId}";
+            var markAsInAuctionUrl = $"{baseUrl}/api/storage/markAsInAuction/{effect.EffectId}";
             _logger.LogInformation("Markerer effekt som InAuction: {EffectId} via POST: {Url}", effect.EffectId, markAsInAuctionUrl);
 
             var updateResponse = await httpClient.PostAsync(markAsInAuctionUrl, null);
