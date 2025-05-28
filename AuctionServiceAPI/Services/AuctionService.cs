@@ -87,16 +87,22 @@ public class AuctionService : IAuctionService
 
         foreach (var effect in effects)
         {
-            var markAsInAuctionUrl = $"{baseUrl}/api/storage/markAsInAuction/{effect.EffectId}";
-            _logger.LogInformation("Markerer effekt som InAuction: {EffectId} via POST: {Url}", effect.EffectId, markAsInAuctionUrl);
+            _logger.LogInformation("Behandler effekt med ID: {EffectId}", effect.EffectId);
+
+            var markAsInAuctionUrl = $"{baseUrl}/markAsInAuction/{effect.EffectId}";
+            _logger.LogInformation("Sender POST-request til: {Url}", markAsInAuctionUrl);
 
             var updateResponse = await httpClient.PostAsync(markAsInAuctionUrl, null);
+
             if (!updateResponse.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Kunne ikke opdatere status for effekt {Id}. Status: {StatusCode}", effect.EffectId, updateResponse.StatusCode);
+                var responseBody = await updateResponse.Content.ReadAsStringAsync();
+                _logger.LogWarning("Kunne ikke opdatere status for effekt {EffectId}. Status: {StatusCode}, Body: {Body}",
+                    effect.EffectId, updateResponse.StatusCode, responseBody);
                 continue;
             }
 
+            _logger.LogInformation("Effekt {EffectId} markeret som InAuction", effect.EffectId);
             effect.Status = EffectDTOStatus.InAuction;
 
             var auction = new Auction
@@ -111,10 +117,9 @@ public class AuctionService : IAuctionService
             };
 
             await _auctionRepository.AddAuction(auction);
-            _logger.LogInformation("Auktion oprettet for effekt {EffectId} med auktion ID {AuctionId}", effect.EffectId, auction.AuctionId);
+            _logger.LogInformation("Auktion oprettet med ID: {AuctionId} for effekt {EffectId}", auction.AuctionId, effect.EffectId);
             createdAuctions.Add(auction);
         }
-
         _logger.LogInformation("Total auktioner oprettet: {Count}", createdAuctions.Count);
         return createdAuctions;
     }
