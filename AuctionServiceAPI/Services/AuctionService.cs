@@ -28,7 +28,7 @@ public class AuctionService : IAuctionService
         _logger = logger;
     }
 
- 
+
 
     public async Task<List<Auction>> ImportEffectsFromStorageAsync()
     {
@@ -50,7 +50,19 @@ public class AuctionService : IAuctionService
 
         foreach (var effect in effects)
         {
+            var markAsInAuctionUrl = $"http://storage-service:5000/api/storage/effect/markAsInAuction/{effect.EffectId}";
+
+            var updateResponse = await httpClient.PostAsync(markAsInAuctionUrl, null);
+
+            if (!updateResponse.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Effect ID {Id} kunne ikke opdateres til InAuction. Status: {StatusCode}",
+                    effect.EffectId, updateResponse.StatusCode);
+                continue;
+            }
+
             effect.Status = EffectDTOStatus.InAuction;
+
             var auction = new Auction
             {
                 AuctionId = Guid.NewGuid(),
@@ -69,6 +81,7 @@ public class AuctionService : IAuctionService
         return createdAuctions;
     }
 
+
     public async Task<Auction?> AddAuctionToCatalog(Guid auctionId, Guid catalogId, double minPrice)
     {
         var auction = await _auctionRepository.GetAuctionById(auctionId);
@@ -80,11 +93,10 @@ public class AuctionService : IAuctionService
         auction.CatalogId = catalogId;
         auction.MinPrice = minPrice;
         auction.Status = AuctionStatus.Active;
-        auction.EndDate = catalog.EndDate; // 👈 nedarv katalogets slutdato
+        auction.EndDate = catalog.EndDate; 
 
         await _auctionRepository.SaveAuction(auction);
 
-        // 🔁 Synkroniser med BidService
         var syncDto = new AuctionDTO
         {
             AuctionId = auction.AuctionId,
